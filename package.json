@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
+    "dev": "npx tsc -p tsconfig.electron.json && concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
     "build": "vite build && tsc -p tsconfig.electron.json && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview"
