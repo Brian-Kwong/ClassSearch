@@ -17,3 +17,6 @@ jobs:
 
       - name: Run Prettier
         run: npm run prettier-check
+
+      - name: Attempt Build
+        run: npm run build
