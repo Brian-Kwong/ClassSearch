@@ -2,10 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-const { ipcRenderer } = window.require("electron");
 import Error from "./error";
 import { redirectURL, SearchParamJson } from "../components/types";
 import { PulseLoader } from "react-spinners";
+
+// Extend the Window interface to include electronAPI
+declare global {
+  interface Window {
+    electronAPI: {
+      firstLogin: (url: string) => Promise<SearchParamJson | null>;
+      fetchCourses: (
+        url: string,
+      ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+    
+  }
+}
 
 const Redirect = () => {
   const [searchParams] = useSearchParams();
@@ -22,8 +33,8 @@ const Redirect = () => {
     if (isCreatingLoginWindow.current) return;
     isCreatingLoginWindow.current = true;
     const url = `${redirectURL[university as keyof typeof redirectURL]}`;
-    ipcRenderer
-      .invoke("first-login", { url })
+    window.electronAPI
+      .firstLogin(url)
       .then((result: SearchParamJson | null) => {
         setLoading(false);
         setUniversityInfo(result);
@@ -42,12 +53,19 @@ const Redirect = () => {
   return (
     <>
       {loading ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "100px" }} >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "100px",
+          }}
+        >
           <PulseLoader color="#637d91" />
           <Text>Redirecting to {university}...</Text>
         </div>
       ) : universityInfo ? (
-                <PulseLoader color="#637d91" />
+        <PulseLoader color="#637d91" />
       ) : (
         <Error message="Failed to load university information." />
       )}

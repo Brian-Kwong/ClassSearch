@@ -1,4 +1,3 @@
-
 import { BrowserWindow } from "electron";
 
 export const makeLoginWindow = (
@@ -16,6 +15,7 @@ export const makeLoginWindow = (
           nodeIntegration: false,
           contextIsolation: true,
           session: userSession,
+          partition: "persist:login",
         },
       });
 

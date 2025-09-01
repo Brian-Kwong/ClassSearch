@@ -17,17 +17,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html,
-body {
-  overflow: hidden;
-}
-
-/* Or just hide vertical scrollbar but keep horizontal */
-body {
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
 body {
   margin: 12px;
   display: flex;
@@ -35,6 +24,10 @@ body {
   align-items: center;
   min-width: 120px;
   min-height: 100vh;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 @media (prefers-color-scheme: light) {
