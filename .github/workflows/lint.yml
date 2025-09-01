@@ -22,4 +22,4 @@ jobs:
         run: if grep -r "console.log" src ; then echo "Found console.log statements"; exit 1; fi
 
       - name: Attempt Build
-        run: npm run build
+        run: npm run testBuild

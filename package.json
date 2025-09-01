@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "npx tsc -p tsconfig.electron.json && concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
     "build": "vite build && tsc -p tsconfig.electron.json && electron-builder",
+    "testBuild": "vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
     "lint": "eslint .",
     "preview": "vite preview",
     "prettier": "prettier --write .",
