@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/electron.js",
   "scripts": {
     "dev": "npx tsc -p tsconfig.electron.json && concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
     "build": "vite build && tsc -p tsconfig.electron.json && electron-builder",
@@ -56,5 +57,11 @@
   "overrides": {
     "sharp": "0.32.6",
     "sharp-ico": "0.1.5"
+  },
+  "build": {
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ]
   }
 }
