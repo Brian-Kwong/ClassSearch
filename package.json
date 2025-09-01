@@ -7,7 +7,9 @@
     "dev": "npx tsc -p tsconfig.electron.json && concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
     "build": "vite build && tsc -p tsconfig.electron.json && electron-builder",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prettier": "prettier --write .",
+    "prettier-check": "prettier --check ."
   },
   "dependencies": {
     "@chakra-ui/react": "^3.25.0",
@@ -16,6 +18,7 @@
     "jquery": "^3.7.1",
     "next-themes": "^0.4.6",
     "playwright": "^1.55.0",
+    "prettier": "^3.6.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
