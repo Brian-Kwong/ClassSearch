@@ -3,9 +3,10 @@ import {
   Combobox,
   useListCollection,
   useFilter,
+  Tag,
 } from "@chakra-ui/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import React from "react";
 
@@ -25,7 +26,6 @@ const SearchOptSelector = ({
   multiple = true,
 }: SearchOptSelectorProps) => {
   const { contains } = useFilter({ sensitivity: "base" });
-  const [searchInput, setSearchInput] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { collection: optionsList, filter } = useListCollection({
@@ -58,16 +58,9 @@ const SearchOptSelector = ({
     [setSelectedValue],
   );
 
-  useEffect(() => {
-    if (multiple) {
-      setSearchInput(selectedValue.join(", "));
-    }
-  }, [multiple, selectedValue, virtualizer]);
-
   const handleInputValueChange = useCallback(
     (e: { inputValue: string }) => {
       filter(e.inputValue);
-      setSearchInput(e.inputValue.substring(0, 17));
     },
     [filter],
   );
@@ -82,10 +75,59 @@ const SearchOptSelector = ({
       value={selectedValue}
       onInputValueChange={handleInputValueChange}
       scrollToIndexFn={handleScrollToIndexFn}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: "100%",
+      }}
     >
       <Combobox.Label>{label}</Combobox.Label>
+
+      {multiple && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: "4px",
+          }}
+        >
+          {selectedValue.map((val) => {
+            return (
+              <Tag.Root>
+                <Tag.Label
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {val}
+                </Tag.Label>
+                <Tag.EndElement>
+                  <Tag.CloseTrigger
+                    onClick={() =>
+                      setSelectedValue(selectedValue.filter((v) => v !== val))
+                    }
+                  />
+                </Tag.EndElement>
+              </Tag.Root>
+            );
+          })}
+        </div>
+      )}
       <Combobox.Control>
-        <Combobox.Input placeholder="Type to search..." value={searchInput} />
+        <Combobox.Input
+          placeholder="Type to search..."
+          style={{
+            paddingRight: "60px",
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+          }}
+        />
         <Combobox.IndicatorGroup>
           <Combobox.ClearTrigger onClick={() => setSelectedValue([""])} />
           <Combobox.Trigger />

@@ -1,7 +1,7 @@
-import { Button, Text } from "@chakra-ui/react";
+import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 import { useLocation } from "react-router-dom";
 import { redirectURL, SearchParamJson } from "../components/types";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import SearchOptSelector from "../components/ui/search-opt-selector";
 import InputBox from "../components/ui/inputBox";
 import React from "react";
@@ -72,10 +72,15 @@ const SearchPage = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
-  const searchOptions = (location.state.searchOptions as SearchParamJson) || {
+  const searchOptions = useMemo(
+    () => (location.state.searchOptions as SearchParamJson) || {},
+    [location.state.searchOptions],
+  );
   const [isWorkerReady, setIsWorkerReady] = useState(false);
   const dataWorkerRef = useRef<Worker | null>(null);
   const [subject, setSubject] = useState<string[]>([]);
+  const [fetchingAvailableSubjectCourses, setFetchingAvailableSubjectCourses] =
+    useState(false);
   const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
     { label: string; value: string }[]
   >([]);
@@ -86,27 +91,31 @@ const SearchPage = () => {
   const [startTime, setStartTime] = useState<string[]>([]);
   const [endTime, setEndTime] = useState<string[]>([]);
   const [instructMode, setInstructMode] = useState<string[]>([]);
-  const [instructorFirstName, setInstructorFirstName] = useState<string>("");
-  const [instructorLastName, setInstructorLastName] = useState<string>("");
+  const [availableInstructorFirstNames, setAvailableInstructorFirstNames] =
+    useState<{ label: string; value: string }[]>([]);
+  const [instructorFirstName, setInstructorFirstName] = useState<string[]>([
+    "",
+  ]);
+  const [availableInstructorLastNames, setAvailableInstructorLastNames] =
+    useState<{ label: string; value: string }[]>([]);
+  const [instructorLastName, setInstructorLastName] = useState<string[]>([""]);
   const [instructorScore, setInstructorScore] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string[]>([]);
   const [termType] = useState<"Semester" | "Quarter">("Quarter");
   const currentMonth = new Date().getMonth();
   const availableTimes = useMemo(
-    () =>
-      [{ label: `12:00 AM`, value: `12:00 AM` }].concat(
-        Array.from({ length: 11 }, (_, i) => ({
-          label: `${i + 1}:00 AM`,
-          value: `${i + 1}.00`,
-        }))
-          .concat({ label: "12:00 PM", value: "12:00 PM" })
-          .concat(
-            Array.from({ length: 11 }, (_, i) => ({
-              label: `${i + 1}:00 PM`,
-              value: `${i + (i % 12) + 12}.00`,
-            })),
-          ),
-      ),
+    () => [
+      { label: `12:00 AM`, value: `12:00 AM` },
+      ...Array.from({ length: 11 }, (_, i) => ({
+        label: `${i + 1}:00 AM`,
+        value: `${i + 1}:00 AM`,
+      })),
+      { label: "12:00 PM", value: "12:00 PM" },
+      ...Array.from({ length: 11 }, (_, i) => ({
+        label: `${i + 1}:00 PM`,
+        value: `${i + 1}:00 PM`,
+      })),
+    ],
     [],
   );
 
@@ -122,9 +131,11 @@ const SearchPage = () => {
             : currentMonth > 3
               ? "Spring"
               : "Winter";
-    setSearchTerm([currentTerm]);
+    if (searchTerm[0] !== currentTerm) {
+      setSearchTerm([currentTerm]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject]);
+  }, []);
 
   useEffect(() => {
     const dataWorker = new Worker();
@@ -137,12 +148,15 @@ const SearchPage = () => {
       }
       if (action === "IPC_REQUEST") {
         const result = await window.electronAPI.fetchCourses(url);
-        dataWorker.postMessage({ action: "processData", ...result });
+        dataWorker.postMessage({ action: "processData", url, ...result });
       }
       if (action === "IPC_RESPONSE") {
         const { success, data } = event.data;
         if (success) {
-          setAvailableCourseNumbers(data);
+          setAvailableCourseNumbers(data.available_courses_set);
+          setAvailableInstructorFirstNames(data.instructorFirstNameSet);
+          setAvailableInstructorLastNames(data.instructorLastNameSet);
+          setFetchingAvailableSubjectCourses(false);
         } else {
           console.error("Failed to process data.");
         }
@@ -155,7 +169,7 @@ const SearchPage = () => {
     
   }, []);
 
-  const submitSearch = () => {
+  const submitSearch = useCallback(() => {
     const searchParams = {
       subject: subject.length > 0 ? subject[0] : "",
       courseCatalogNum: courseCatalogNum.length > 0 ? courseCatalogNum[0] : "",
@@ -175,8 +189,32 @@ const SearchPage = () => {
     const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&term=${searchParams.searchTerm}&subject=${searchParams.subject}&catalog_nbr=${searchParams.courseCatalogNum}&start_time_ge=${searchParams.startTime}&end_time_le=${searchParams.endTime}&days=${searchParams.dayOfTheWeek}&instruction_mode=${searchParams.instructMode}&crse_attr_value=${encodeURIComponent(searchParams.courseAttributes)}&instructor_name=${searchParams.instructorLastName}&instr_first_name=${searchParams.instructorFirstName}&units=${searchParams.numberOfUnits}&trigger_search=&page=1`;
     if (isWorkerReady && dataWorkerRef.current) {
       dataWorkerRef.current.postMessage({ action: "fetchCourses", url });
+      setFetchingAvailableSubjectCourses(true);
     }
-  
+  }, [
+    subject,
+    courseCatalogNum,
+    courseAttributes,
+    dayOfTheWeek,
+    numberOfUnits,
+    startTime,
+    endTime,
+    instructMode,
+    instructorFirstName,
+    instructorLastName,
+    instructorScore,
+    searchTerm,
+    university,
+    searchOptions,
+    isWorkerReady,
+    dataWorkerRef,
+  ]);
+
+  useEffect(() => {
+    if (subject.length > 0 && subject[0] !== "") {
+      submitSearch();
+    }
+  }, [subject, submitSearch]);
 
   const availableTerms = useMemo(
     () => generate_available_terms(termType),
@@ -235,10 +273,19 @@ const SearchPage = () => {
   );
 
   // useCallback handlers for all selectors
-  const handleSubjectChange = React.useCallback(
-    (value: string[]) => setSubject(value),
-    [],
-  );
+  const handleSubjectChange = React.useCallback((value: string[]) => {
+    if (value.length == 0 || value[0] === "") {
+      setAvailableCourseNumbers([]);
+      setAvailableInstructorFirstNames([]);
+      setAvailableInstructorLastNames([]);
+      setCourseCatalogNum([""]);
+      setInstructorFirstName([""]);
+      setInstructorLastName([""]);
+      setSubject([""]);
+    } else {
+      setSubject(value);
+    }
+  }, []);
   const handleCourseAttributesChange = React.useCallback(
     (value: string[]) => setCourseAttributes(value),
     [],
@@ -274,12 +321,12 @@ const SearchPage = () => {
   );
   const handleInstructorFirstNameChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
-      setInstructorFirstName(e.target.value),
+      setInstructorFirstName([e.target.value]),
     [],
   );
   const handleInstructorLastNameChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
-      setInstructorLastName(e.target.value),
+      setInstructorLastName([e.target.value]),
     [],
   );
   const handleInstructorScoreChange = React.useCallback(
@@ -301,18 +348,15 @@ const SearchPage = () => {
       <Text fontSize="4xl" fontWeight="bold">
         Course Search
       </Text>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: "10px",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
+      <Grid
+        templateColumns={{
+          base: "1fr",
+          md: "repeat(2, 1fr)",
+          lg: "repeat(3, 1fr)",
         }}
+        gap={4}
       >
-        <div style={{ flex: "0 0 auto" }}>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={subject || [""]}
             setSelectedValue={handleSubjectChange}
@@ -320,8 +364,8 @@ const SearchPage = () => {
             label="Subject"
             multiple={false}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           {availableCourseNumbers.length > 0 ? (
             <SearchOptSelector
               selectedValue={courseCatalogNum || [""]}
@@ -335,10 +379,11 @@ const SearchPage = () => {
               label="Course Catalog Number"
               value={courseCatalogNum[0] || ""}
               onChange={(e) => setCourseCatalogNum([e.target.value])}
+              loadingData={fetchingAvailableSubjectCourses}
             />
           )}
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={courseAttributes || [""]}
             setSelectedValue={handleCourseAttributesChange}
@@ -346,8 +391,8 @@ const SearchPage = () => {
             label="Course Attributes"
             multiple={true}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={dayOfTheWeek || [""]}
             setSelectedValue={handleDayOfTheWeekChange}
@@ -359,8 +404,8 @@ const SearchPage = () => {
                 : true
             }
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={searchTerm || [""]}
             setSelectedValue={handleSearchTermChange}
@@ -368,8 +413,8 @@ const SearchPage = () => {
             label="Term"
             multiple={false}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={numberOfUnits || [""]}
             setSelectedValue={handleNumberOfUnitsChange}
@@ -377,8 +422,8 @@ const SearchPage = () => {
             label="Number of Units"
             multiple={false}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={startTime || [""]}
             setSelectedValue={handleStartTimeChange}
@@ -386,8 +431,8 @@ const SearchPage = () => {
             label="Start Time"
             multiple={false}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={endTime || [""]}
             setSelectedValue={handleEndTimeChange}
@@ -395,8 +440,8 @@ const SearchPage = () => {
             label="End Time"
             multiple={false}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
           <SearchOptSelector
             selectedValue={instructMode || [""]}
             setSelectedValue={handleInstructModeChange}
@@ -404,29 +449,51 @@ const SearchPage = () => {
             label="Instruction Mode"
             multiple={false}
           />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
-          <InputBox
-            label="Instructor First Name"
-            value={instructorFirstName}
-            onChange={handleInstructorFirstNameChange}
-          />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
-          <InputBox
-            label="Instructor Last Name"
-            value={instructorLastName}
-            onChange={handleInstructorLastNameChange}
-          />
-        </div>
-        <div style={{ flex: "0 0 auto" }}>
+        </GridItem>
+        <GridItem colSpan={1}>
+          {availableInstructorFirstNames.length > 0 ? (
+            <SearchOptSelector
+              selectedValue={instructorFirstName || [""]}
+              setSelectedValue={setInstructorFirstName}
+              options={availableInstructorFirstNames}
+              label="Instructor First Name"
+              multiple={false}
+            />
+          ) : (
+            <InputBox
+              label="Instructor First Name"
+              value={instructorFirstName[0] || ""}
+              onChange={handleInstructorFirstNameChange}
+              loadingData={fetchingAvailableSubjectCourses}
+            />
+          )}
+        </GridItem>
+        <GridItem colSpan={1}>
+          {availableInstructorLastNames.length > 0 ? (
+            <SearchOptSelector
+              selectedValue={instructorLastName || [""]}
+              setSelectedValue={setInstructorLastName}
+              options={availableInstructorLastNames}
+              label="Instructor Last Name"
+              multiple={false}
+            />
+          ) : (
+            <InputBox
+              label="Instructor Last Name"
+              value={instructorLastName[0] || ""}
+              onChange={handleInstructorLastNameChange}
+              loadingData={fetchingAvailableSubjectCourses}
+            />
+          )}
+        </GridItem>
+        <GridItem colSpan={1}>
           <InputBox
             label="Instructor Score"
             value={instructorScore}
             onChange={handleInstructorScoreChange}
           />
-        </div>
-      </div>
+        </GridItem>
+      </Grid>
       <Button onClick={() => submitSearch()} bg="brand.300">
         Search
       </Button>

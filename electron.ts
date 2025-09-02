@@ -4,6 +4,7 @@ import type { Session } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import { error } from "console";
+// import fetch from 'node-fetch-cache';
 
 export let persistentSession: Session | null = null;
 
