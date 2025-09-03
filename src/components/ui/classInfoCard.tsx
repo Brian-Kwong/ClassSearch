@@ -43,7 +43,7 @@ const ClassInfoCard = ({ course }: { course: UniversityCourseResponse }) => {
             {`${course.wait_tot > 0 ? ` | Waitlist: ${course.wait_tot}` : ""}`}
           </Text>
         </Card.Title>
-        <Card.Description>
+        <div>
           <HStack
             flexWrap={"wrap"}
             gap={4}
@@ -146,7 +146,7 @@ const ClassInfoCard = ({ course }: { course: UniversityCourseResponse }) => {
               </HStack>
             </Stack>
           </HStack>
-        </Card.Description>
+        </div>
       </Card.Body>
     </Card.Root>
   );

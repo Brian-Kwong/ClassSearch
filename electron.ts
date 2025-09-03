@@ -1,4 +1,11 @@
-import { app, BrowserWindow, ipcMain, session, autoUpdater, dialog } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  session,
+  autoUpdater,
+  dialog,
+} from "electron";
 import { makeLoginWindow } from "./src/components/loginWindow.js";
 import type { Session } from "electron";
 import path from "path";
@@ -40,7 +47,8 @@ autoUpdater.on("update-downloaded", async () => {
   const response = await dialog.showMessageBox({
     type: "info",
     title: "Update Available",
-    message: "A new version of the app is available. Would you like to restart and install?",
+    message:
+      "A new version of the app is available. Would you like to restart and install?",
     buttons: ["Yes", "No"],
   });
   if (response === 0) {

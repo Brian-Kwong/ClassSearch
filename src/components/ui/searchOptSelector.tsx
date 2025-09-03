@@ -108,7 +108,9 @@ const SearchOptSelector = ({
                 <Tag.EndElement>
                   <Tag.CloseTrigger
                     onClick={() =>
-                      setSelectedValue(selectedValue.filter((v) => v !== val.key))
+                      setSelectedValue(
+                        selectedValue.filter((v) => v !== val.key),
+                      )
                     }
                   />
                 </Tag.EndElement>
