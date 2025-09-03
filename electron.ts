@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session } from "electron";
+import { app, BrowserWindow, ipcMain, session, autoUpdater, dialog } from "electron";
 import { makeLoginWindow } from "./src/components/loginWindow.js";
 import type { Session } from "electron";
 import path from "path";
@@ -27,12 +27,26 @@ const createNewApp = () => {
     persistentSession = session.fromPartition("persist:login");
     mainWindow.loadURL("http://localhost:5173");
     mainWindow.setMenuBarVisibility(false);
+
+    autoUpdater.checkForUpdates();
   } catch (error) {
     console.error("Error occurred while creating the main window:", error);
   }
 
 
 app.whenReady().then(createNewApp);
+
+autoUpdater.on("update-downloaded", async () => {
+  const response = await dialog.showMessageBox({
+    type: "info",
+    title: "Update Available",
+    message: "A new version of the app is available. Would you like to restart and install?",
+    buttons: ["Yes", "No"],
+  });
+  if (response === 0) {
+    autoUpdater.quitAndInstall();
+  }
+});
 
 ipcMain.handle(`firstLogin`, async (_event, params: { url: string }) => {
   const result = await makeLoginWindow(params.url, persistentSession!);
