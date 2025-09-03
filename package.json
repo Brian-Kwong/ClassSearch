@@ -17,6 +17,7 @@
     "@chakra-ui/react": "^3.25.0",
     "@emotion/react": "^11.14.0",
     "@tanstack/react-virtual": "^3.13.12",
+    "add": "^2.0.6",
     "dayjs": "^1.11.18",
     "idb": "^8.0.3",
     "jquery": "^3.7.1",
@@ -76,10 +77,21 @@
       "dist-electron/**/*"
     ],
     "appId": "com.brian-kwong.csu-class-search",
-    "publish": {
-      "provider": "github",
-      "owner": "brian-kwong",
-      "repo": "CSUClassSearch"
+    "productName": "CSU Class Search",
+    "mac": {
+      "icons": [
+        "src/assets/icons/mac/icon.icns"
+      ]
+    },
+    "win": {
+      "icons": [
+        "src/assets/icons/win/icon.ico"
+      ]
+    },
+    "linux": {
+      "icons": [
+        "src/assets/icons/png"
+      ]
     }
   }
 }

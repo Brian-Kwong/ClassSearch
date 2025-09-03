@@ -4,11 +4,22 @@
     <meta charset="UTF-8" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClaassSearch</title>
+    <title>ClassSearch</title>
+    <link rel="stylesheet" href="index.css">
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- <script src="https://unpkg.com/react-scan/dist/auto.global.js"></script>  Uncomment this line to enable react-scan -->
+    <div id="title-bar">
+      <h1>ClassSearch</h1>
+    </div>
+    <div id="content">
+      <div id="root"></div>
+      <script>
+        window.onload = () => {
+          document.body.classList.add(`platform-${window.electron.platform}`);
+        
+      </script>
+      <script type="module" src="/src/main.tsx"></script>
+      <!-- <script src="https://unpkg.com/react-scan/dist/auto.global.js"></script>  Uncomment this line to enable react-scan -->
+    </div>
   </body>
 </html>

@@ -21,8 +21,12 @@ const __dirname = path.dirname(__filename);
 const createNewApp = () => {
   try {
     const mainWindow = new BrowserWindow({
-      width: 1280,
-      height: 720,
+      titleBarStyle: 'hidden',
+      minWidth: 384,
+      minHeight: 480,
+      ...(process.platform === "darwin"
+        ? { trafficLightPosition: { x: 16, y: 8 } }
+        : {}),
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: true,
@@ -31,10 +35,12 @@ const createNewApp = () => {
         enableBlinkFeatures: "EnableWebWorkerInspection",
       },
     });
+
+    
     persistentSession = session.fromPartition("persist:login");
     mainWindow.loadURL("http://localhost:5173");
     mainWindow.setMenuBarVisibility(false);
-
+    mainWindow.maximize();
     autoUpdater.checkForUpdates();
   } catch (error) {
     console.error("Error occurred while creating the main window:", error);

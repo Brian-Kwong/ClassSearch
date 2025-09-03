@@ -17,7 +17,9 @@ const SearchResultsPage = () => {
   }, [location.state.searchOptions]);
 
   return (
-    <Stack>
+    <Stack style={{
+      overflowY: "scroll",
+    }}>
       <HStack justifyContent={"space-between"} padding={2} flexWrap={"wrap"}>
         {searchResults ? (
           <Text textStyle="heading">
