@@ -77,21 +77,22 @@ export type SearchParamJson = {
 
 
 export type UserSearchRequestTypes = {
-  subject: string;
-  courseCatalogNum: string;
-  courseAttributes: string;
-  dayOfTheWeek: string;
-  numberOfUnits: string;
-  startTime: string;
-  endTime: string;
-  instructMode: string;
-  instructorFirstName: string;
-  instructorLastName: string;
-  instructorScore: string;
-  searchTerm: string;
+    subject: string[];
+    courseCatalogNum: string[];
+    courseAttributes: string[];
+    dayOfTheWeek: string[];
+    numberOfUnits: string[];
+    startTime: string[];
+    endTime: string[];
+    instructMode: string[];
+    instructorFirstName: string[];
+    instructorLastName: string[];
+    instructorScore: string;
+    searchTerm: string[];
 
 
 export type UniversityCourseResponse = {
+  index: number;
   crse_id: string;
   strm: string; // Term
   session_descr: string;

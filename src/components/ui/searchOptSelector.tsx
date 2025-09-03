@@ -93,7 +93,7 @@ const SearchOptSelector = ({
             gap: "4px",
           }}
         >
-          {selectedValue.map((val) => {
+          {virtualizer.getVirtualItems().map((val) => {
             return (
               <Tag.Root>
                 <Tag.Label
@@ -103,12 +103,12 @@ const SearchOptSelector = ({
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {val}
+                  {val.key}
                 </Tag.Label>
                 <Tag.EndElement>
                   <Tag.CloseTrigger
                     onClick={() =>
-                      setSelectedValue(selectedValue.filter((v) => v !== val))
+                      setSelectedValue(selectedValue.filter((v) => v !== val.key))
                     }
                   />
                 </Tag.EndElement>

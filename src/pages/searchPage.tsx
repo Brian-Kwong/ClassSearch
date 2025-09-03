@@ -80,6 +80,7 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
+  const latestHistory = true;
   const searchOptions = useMemo(
     () => (location.state.searchOptions as SearchParamJson) || {},
     [location.state.searchOptions],
@@ -87,29 +88,41 @@ const SearchPage = () => {
   const [isWorkerReady, setIsWorkerReady] = useState(false);
   const dataWorkerRef = useRef<Worker | null>(null);
   const [performSearch, setPerformSearch] = useState(false);
-  const [subject, setSubject] = useState<string[]>([]);
   const [fetchingAvailableSubjectCourses, setFetchingAvailableSubjectCourses] =
     useState(false);
-  const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [courseCatalogNum, setCourseCatalogNum] = useState<string[]>([""]);
-  const [courseAttributes, setCourseAttributes] = useState<string[]>([]);
-  const [dayOfTheWeek, setDayOfTheWeek] = useState<string[]>([]);
-  const [numberOfUnits, setNumberOfUnits] = useState<string[]>([]);
-  const [startTime, setStartTime] = useState<string[]>([]);
-  const [endTime, setEndTime] = useState<string[]>([]);
-  const [instructMode, setInstructMode] = useState<string[]>([]);
-  const [availableInstructorFirstNames, setAvailableInstructorFirstNames] =
-    useState<{ label: string; value: string }[]>([]);
-  const [instructorFirstName, setInstructorFirstName] = useState<string[]>([
-    "",
-  ]);
-  const [availableInstructorLastNames, setAvailableInstructorLastNames] =
-    useState<{ label: string; value: string }[]>([]);
-  const [instructorLastName, setInstructorLastName] = useState<string[]>([""]);
-  const [instructorScore, setInstructorScore] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string[]>([]);
+  const [searchState, setSearchState] = useState<{
+    subject: string[];
+    availableCourseNumbers: { label: string; value: string }[];
+    courseCatalogNum: string[];
+    courseAttributes: string[];
+    dayOfTheWeek: string[];
+    numberOfUnits: string[];
+    startTime: string[];
+    endTime: string[];
+    instructMode: string[];
+    availableInstructorFirstNames: { label: string; value: string }[];
+    instructorFirstName: string[];
+    availableInstructorLastNames: { label: string; value: string }[];
+    instructorLastName: string[];
+    instructorScore: string;
+    searchTerm: string[];
+  }>({
+    subject: [],
+    availableCourseNumbers: [],
+    courseCatalogNum: [""],
+    courseAttributes: [],
+    dayOfTheWeek: [],
+    numberOfUnits: [],
+    startTime: [],
+    endTime: [],
+    instructMode: [],
+    availableInstructorFirstNames: [],
+    instructorFirstName: [""],
+    availableInstructorLastNames: [],
+    instructorLastName: [""],
+    instructorScore: "",
+    searchTerm: [],
+  });
   const [termType] = useState<"Semester" | "Quarter">("Quarter");
   const currentMonth = new Date().getMonth();
   const availableTimes = useMemo(
@@ -140,8 +153,8 @@ const SearchPage = () => {
             : currentMonth > 3
               ? "Spring"
               : "Winter";
-    if (searchTerm[0] !== currentTerm) {
-      setSearchTerm([currentTerm]);
+    if (searchState.searchTerm[0] !== currentTerm) {
+      setSearchState((prev) => ({ ...prev, searchTerm: [currentTerm] }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -171,18 +184,42 @@ const SearchPage = () => {
           action: "processData",
           url,
           ...result,
+          params: event.data.searchParams,
           forSearch: performSearch,
         }); // send the data to the worker for processing
       }
-      if (action === "IPC_RESPONSE") {
+      if(action === "HISTORY_RESPONSE" && latestHistory) {
         const { success, data } = event.data;
+        if (success) {
+          setSearchState((prev) => ({
+            ...prev,
+            subject: data.params.subject || [],
+            courseCatalogNum: data.params.catalog_nbr || [],
+            courseAttributes: data.params.crse_attr_value || [],
+            dayOfTheWeek: data.params.days || [],
+            numberOfUnits: data.params.units || [],
+            startTime: data.params.start_time_ge || [],
+            endTime: data.params.end_time_le || [],
+            instructMode: data.params.instruction_mode || [],
+            instructorFirstName: data.params.instr_first_name || [],
+            instructorLastName: data.params.instructor_name || [],
+            instructorScore: data.params.instructor_score || "",
+            searchTerm: (data.params.searchTerm && data.params.searchTerm.length > 0 && data.params.searchTerm[0] != prev.searchTerm[0]) ? data.params.searchTerm : prev.searchTerm,
+          }));
+        }
+      }
+      if (action === "IPC_RESPONSE") {
+        const { success, data,  } = event.data;
         if (performSearch) {
           navigateToResults(data);
         }
         if (success) {
-          setAvailableCourseNumbers(data.available_courses_set);
-          setAvailableInstructorFirstNames(data.instructorFirstNameSet);
-          setAvailableInstructorLastNames(data.instructorLastNameSet);
+          setSearchState((prev) => ({
+            ...prev,
+            availableCourseNumbers: data.available_courses_set,
+            availableInstructorFirstNames: data.instructorFirstNameSet,
+            availableInstructorLastNames: data.instructorLastNameSet,
+          }));
           setFetchingAvailableSubjectCourses(false);
         } else {
           console.error("Failed to process data.");
@@ -194,10 +231,10 @@ const SearchPage = () => {
         dataWorkerRef.current.terminate();
       }
     
-  }, [performSearch, navigateToResults]);
+  }, [performSearch, navigateToResults, latestHistory, searchState.searchTerm]);
 
   const submitSearch = useCallback(() => {
-    if (searchTerm.length < 1 || searchTerm[0] === "") {
+  if (searchState.searchTerm.length < 1 || searchState.searchTerm[0] === "") {
       return toaster.create({
         type: performSearch ? "error" : "warning",
         title: "No term selected",
@@ -208,49 +245,48 @@ const SearchPage = () => {
         action: {
           label: "Select Default Term",
           onClick: () => {
-            setSearchTerm([searchOptions.selected_term]);
+            setSearchState((prev) => ({ ...prev, searchTerm: [searchOptions.selected_term] }));
           },
         },
       });
     }
     const searchParams = {
-      subject: subject.length > 0 ? subject[0] : "",
-      courseCatalogNum: courseCatalogNum.length > 0 ? courseCatalogNum[0] : "",
-      courseAttributes: courseAttributes.length > 0 ? courseAttributes[0] : "",
-      dayOfTheWeek: dayOfTheWeek.length > 0 ? dayOfTheWeek[0] : "",
-      numberOfUnits: numberOfUnits.length > 0 ? numberOfUnits[0] : "",
-      startTime: startTime.length > 0 ? startTime[0] : "",
-      endTime: endTime.length > 0 ? endTime[0] : "",
-      instructMode: instructMode.length > 0 ? instructMode[0] : "",
-      instructorFirstName:
-        instructorFirstName.length > 0 ? instructorFirstName : "",
-      instructorLastName:
-        instructorLastName.length > 0 ? instructorLastName : "",
-      instructorScore: instructorScore.length > 0 ? instructorScore : "",
-      searchTerm: searchTerm.length > 0 ? searchTerm[0] : "",
+  subject: searchState.subject,
+  courseCatalogNum: searchState.courseCatalogNum,
+  courseAttributes: searchState.courseAttributes,
+  dayOfTheWeek: searchState.dayOfTheWeek,
+  numberOfUnits: searchState.numberOfUnits,
+  startTime: searchState.startTime,
+  endTime: searchState.endTime,
+  instructMode: searchState.instructMode,
+  instructorFirstName: searchState.instructorFirstName,
+  instructorLastName: searchState.instructorLastName,
+  instructorScore: searchState.instructorScore,
+  searchTerm: searchState.searchTerm
     
-    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&term=${searchParams.searchTerm}&subject=${searchParams.subject}&catalog_nbr=${searchParams.courseCatalogNum}&start_time_ge=${searchParams.startTime}&end_time_le=${searchParams.endTime}&days=${searchParams.dayOfTheWeek}&instruction_mode=${searchParams.instructMode}&crse_attr_value=${encodeURIComponent(searchParams.courseAttributes)}&instructor_name=${searchParams.instructorLastName}&instr_first_name=${searchParams.instructorFirstName}&units=${searchParams.numberOfUnits}&trigger_search=&page=1`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${encodeURIComponent(searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0] : "")}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&page=1`;
     if (isWorkerReady && dataWorkerRef.current) {
       dataWorkerRef.current.postMessage({
         action: "fetchCourses",
         url,
+        params: searchParams,
         forSearch: performSearch,
       });
       setFetchingAvailableSubjectCourses(true);
     }
   }, [
-    subject,
-    courseCatalogNum,
-    courseAttributes,
-    dayOfTheWeek,
-    numberOfUnits,
-    startTime,
-    endTime,
-    instructMode,
-    instructorFirstName,
-    instructorLastName,
-    instructorScore,
-    searchTerm,
+    searchState.subject,
+    searchState.courseCatalogNum,
+    searchState.courseAttributes,
+    searchState.dayOfTheWeek,
+    searchState.numberOfUnits,
+    searchState.startTime,
+    searchState.endTime,
+    searchState.instructMode,
+    searchState.instructorFirstName,
+    searchState.instructorLastName,
+    searchState.instructorScore,
+    searchState.searchTerm,
     university,
     searchOptions,
     isWorkerReady,
@@ -259,10 +295,10 @@ const SearchPage = () => {
   ]);
 
   useEffect(() => {
-    if (subject.length > 0 && subject[0] !== "") {
+    if (searchState.subject.length > 0 && searchState.subject[0] !== "") {
       submitSearch();
     }
-  }, [subject, submitSearch]);
+  }, [searchState.subject, submitSearch]);
 
   useEffect(() => {
     if (performSearch) {
@@ -325,75 +361,32 @@ const SearchPage = () => {
     [],
   );
 
-  // useCallback handlers for all selectors
+
   const handleSubjectChange = React.useCallback((value: string[]) => {
-    if (value.length == 0 || value[0] === "") {
-      setAvailableCourseNumbers([]);
-      setAvailableInstructorFirstNames([]);
-      setAvailableInstructorLastNames([]);
-      setCourseCatalogNum([""]);
-      setInstructorFirstName([""]);
-      setInstructorLastName([""]);
-      setSubject([""]);
+    if (value.length === 0 || value[0] === "") {
+      setSearchState((prev) => ({
+        ...prev,
+        availableCourseNumbers: [],
+        availableInstructorFirstNames: [],
+        availableInstructorLastNames: [],
+        courseCatalogNum: [""],
+        instructorFirstName: [""],
+        instructorLastName: [""],
+        subject: [""]
+      }));
     } else {
-      setSubject(value);
+      setSearchState((prev) => ({ ...prev, subject: value }));
     }
   }, []);
 
-  const handleCourseAttributesChange = React.useCallback(
-    (value: string[]) => setCourseAttributes(value),
-    [],
-  );
-  const handleDayOfTheWeekChange = React.useCallback((value: string[]) => {
-    if (value.includes("any")) {
-      setDayOfTheWeek(["any"]);
-    } else if (value.includes("MTWTF")) {
-      setDayOfTheWeek(["MTWTF"]);
-    } else {
-      setDayOfTheWeek(value);
-    }
-  }, []);
-  const handleSearchTermChange = React.useCallback(
-    (value: string[]) => setSearchTerm(value),
-    [],
-  );
-  const handleNumberOfUnitsChange = React.useCallback(
-    (value: string[]) => setNumberOfUnits(value),
-    [],
-  );
-  const handleStartTimeChange = React.useCallback(
-    (value: string[]) => setStartTime(value),
-    [],
-  );
-  const handleEndTimeChange = React.useCallback(
-    (value: string[]) => setEndTime(value),
-    [],
-  );
-  const handleInstructModeChange = React.useCallback(
-    (value: string[]) => setInstructMode(value),
-    [],
-  );
-  const handleInstructorFirstNameChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setInstructorFirstName([e.target.value]),
-    [],
-  );
-  const handleInstructorLastNameChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setInstructorLastName([e.target.value]),
-    [],
-  );
-  const handleInstructorScoreChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      toaster.create({
-        type: "warning",
-        title: "Instructor Score Feature not implemented yet",
-        description: "This feature will be added in future releases.",
+  useEffect(() => {
+    if(latestHistory && isWorkerReady && dataWorkerRef.current) {
+      dataWorkerRef.current.postMessage({
+        action: "getSearchHistory",
+        latestOnly: true,
       });
-      setInstructorScore(e.target.value);
-    },
-    [],
-  );
+    }
+  }, [latestHistory, isWorkerReady])
 
   return (
     <>
@@ -419,7 +412,7 @@ const SearchPage = () => {
         >
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={subject || [""]}
+              selectedValue={searchState.subject || [""]}
               setSelectedValue={handleSubjectChange}
               options={subjectOptions}
               label="Subject"
@@ -427,27 +420,27 @@ const SearchPage = () => {
             />
           </GridItem>
           <GridItem colSpan={1}>
-            {availableCourseNumbers.length > 0 ? (
+            {searchState.availableCourseNumbers && searchState.availableCourseNumbers.length > 0 ? (
               <SearchOptSelector
-                selectedValue={courseCatalogNum || [""]}
-                setSelectedValue={setCourseCatalogNum}
-                options={availableCourseNumbers}
+                selectedValue={searchState.courseCatalogNum || [""]}
+                setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, courseCatalogNum: value }))}
+                options={searchState.availableCourseNumbers}
                 label="Course Catalog Number"
                 multiple={false}
               />
             ) : (
               <InputBox
                 label="Course Catalog Number"
-                value={courseCatalogNum[0] || ""}
-                onChange={(e) => setCourseCatalogNum([e.target.value])}
+                value={searchState.courseCatalogNum[0] || ""}
+                onChange={(e) => setSearchState((prev) => ({ ...prev, courseCatalogNum: [e.target.value] }))}
                 loadingData={fetchingAvailableSubjectCourses}
               />
             )}
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={courseAttributes || [""]}
-              setSelectedValue={handleCourseAttributesChange}
+              selectedValue={searchState.courseAttributes || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, courseAttributes: value }))}
               options={courseAttributeOptions}
               label="Course Attributes"
               multiple={true}
@@ -455,12 +448,12 @@ const SearchPage = () => {
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={dayOfTheWeek || [""]}
-              setSelectedValue={handleDayOfTheWeekChange}
+              selectedValue={searchState.dayOfTheWeek || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, dayOfTheWeek: value }))}
               options={dayOfTheWeekOptions}
               label="Day of the Week"
               multiple={
-                dayOfTheWeek.includes("any") || dayOfTheWeek.includes("MTWTF")
+                searchState.dayOfTheWeek.includes("any") || searchState.dayOfTheWeek.includes("MTWTF")
                   ? false
                   : true
               }
@@ -468,8 +461,8 @@ const SearchPage = () => {
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={searchTerm || [""]}
-              setSelectedValue={handleSearchTermChange}
+              selectedValue={searchState.searchTerm || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, searchTerm: value }))}
               options={availableTerms}
               label="Term"
               multiple={false}
@@ -477,8 +470,8 @@ const SearchPage = () => {
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={numberOfUnits || [""]}
-              setSelectedValue={handleNumberOfUnitsChange}
+              selectedValue={searchState.numberOfUnits || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, numberOfUnits: value }))}
               options={numberOfUnitsOptions}
               label="Number of Units"
               multiple={false}
@@ -486,8 +479,8 @@ const SearchPage = () => {
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={startTime || [""]}
-              setSelectedValue={handleStartTimeChange}
+              selectedValue={searchState.startTime || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, startTime: value }))}
               options={availableTimes}
               label="Start Time"
               multiple={false}
@@ -495,8 +488,8 @@ const SearchPage = () => {
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={endTime || [""]}
-              setSelectedValue={handleEndTimeChange}
+              selectedValue={searchState.endTime || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, endTime: value }))}
               options={availableTimes}
               label="End Time"
               multiple={false}
@@ -504,45 +497,45 @@ const SearchPage = () => {
           </GridItem>
           <GridItem colSpan={1}>
             <SearchOptSelector
-              selectedValue={instructMode || [""]}
-              setSelectedValue={handleInstructModeChange}
+              selectedValue={searchState.instructMode || [""]}
+              setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, instructMode: value }))}
               options={instructModeOptions}
               label="Instruction Mode"
               multiple={false}
             />
           </GridItem>
           <GridItem colSpan={1}>
-            {availableInstructorFirstNames.length > 0 ? (
+            {searchState.availableInstructorFirstNames && searchState.availableInstructorFirstNames.length > 0 ? (
               <SearchOptSelector
-                selectedValue={instructorFirstName || [""]}
-                setSelectedValue={setInstructorFirstName}
-                options={availableInstructorFirstNames}
+                selectedValue={searchState.instructorFirstName || [""]}
+                setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, instructorFirstName: value }))}
+                options={searchState.availableInstructorFirstNames}
                 label="Instructor First Name"
                 multiple={false}
               />
             ) : (
               <InputBox
                 label="Instructor First Name"
-                value={instructorFirstName[0] || ""}
-                onChange={handleInstructorFirstNameChange}
+                value={searchState.instructorFirstName[0] || ""}
+                onChange={(e) => setSearchState((prev) => ({ ...prev, instructorFirstName: [e.target.value] }))}
                 loadingData={fetchingAvailableSubjectCourses}
               />
             )}
           </GridItem>
           <GridItem colSpan={1}>
-            {availableInstructorLastNames.length > 0 ? (
+            {searchState.availableInstructorLastNames && searchState.availableInstructorLastNames.length > 0 ? (
               <SearchOptSelector
-                selectedValue={instructorLastName || [""]}
-                setSelectedValue={setInstructorLastName}
-                options={availableInstructorLastNames}
+                selectedValue={searchState.instructorLastName || [""]}
+                setSelectedValue={(value) => setSearchState((prev) => ({ ...prev, instructorLastName: value }))}
+                options={searchState.availableInstructorLastNames}
                 label="Instructor Last Name"
                 multiple={false}
               />
             ) : (
               <InputBox
                 label="Instructor Last Name"
-                value={instructorLastName[0] || ""}
-                onChange={handleInstructorLastNameChange}
+                value={searchState.instructorLastName[0] || ""}
+                onChange={(e) => setSearchState((prev) => ({ ...prev, instructorLastName: [e.target.value] }))}
                 loadingData={fetchingAvailableSubjectCourses}
               />
             )}
@@ -550,8 +543,8 @@ const SearchPage = () => {
           <GridItem colSpan={1}>
             <InputBox
               label="Instructor Score"
-              value={instructorScore}
-              onChange={handleInstructorScoreChange}
+              value={searchState.instructorScore}
+              onChange={(e) => setSearchState((prev) => ({ ...prev, instructorScore: e.target.value }))}
             />
           </GridItem>
         </Grid>
