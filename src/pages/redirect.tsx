@@ -6,7 +6,7 @@ import Error from "./error";
 import { redirectURL, SearchParamJson } from "../components/types";
 import { PulseLoader } from "react-spinners";
 
-// Extend the Window interface to include electronAPI
+// Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {
   interface Window {
     electronAPI: {

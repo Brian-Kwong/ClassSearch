@@ -50,7 +50,6 @@ const SearchOptSelector = ({
     });
   
 
-  // Memoize setSelectedValue handler
   const handleValueChange = useCallback(
     (valueDetails: { value: string[] }) => {
       setSelectedValue(valueDetails.value);

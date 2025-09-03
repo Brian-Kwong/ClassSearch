@@ -13,7 +13,7 @@ interface CourseDB extends DBSchema {
   
 }
 
-const cacheTTL = 1000 * 60 * 5; // 5 minutes
+const cacheTTL = 1000 * 60 * 120; // 120 minutes Cache TTL
 
 const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
   upgrade(db) {
@@ -69,7 +69,7 @@ const processData = (data: UniversityCourseResponse[]) => {
 
 
 self.onmessage = async (event) => {
-  const { action, url, data } = event.data;
+  const { action, url, data, forSearch } = event.data;
   if (action === "fetchCourses") {
     const db = await createAndOpenDB;
     const cached = await db.get("coursesSearches", url);
@@ -77,7 +77,7 @@ self.onmessage = async (event) => {
       self.postMessage({
         action: "IPC_RESPONSE",
         success: true,
-        data: processData(cached.data),
+        data: forSearch === true ? cached.data : processData(cached.data),
       });
       return;
     } else if (cached) {
@@ -95,7 +95,7 @@ self.onmessage = async (event) => {
     self.postMessage({
       action: "IPC_RESPONSE",
       success: true,
-      data: processData(processedData),
+      data: forSearch === true ? processedData : processData(processedData),
     });
   }
 

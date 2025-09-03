@@ -40,7 +40,7 @@ ipcMain.handle(`firstLogin`, async (_event, params: { url: string }) => {
 });
 
 ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
-  // Handle the search request here
+  // Handles the primary search request here
   const cookies = await persistentSession?.cookies.get({});
   try {
     if (cookies && cookies.length > 0) {
@@ -82,7 +82,7 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
       }
     } else {
       console.warn("No cookies found, initiating login process.");
-      // Invoke first login
+      // Invoke first login to maybe resign in the user?
       const result = await makeLoginWindow(params.url, persistentSession!);
       return result;
     }
