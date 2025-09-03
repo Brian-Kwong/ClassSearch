@@ -71,6 +71,12 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
-    ]
+    ],
+    "appId": "com.brian-kwong.csu-class-search",
+    "publish": {
+      "provider": "github",
+      "owner": "brian-kwong",
+      "repo": "CSUClassSearch"
+    }
   }
 }
