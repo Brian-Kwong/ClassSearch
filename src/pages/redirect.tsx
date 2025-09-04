@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Error from "./error";
 import { redirectURL, SearchParamJson } from "../components/types";
 import { PulseLoader } from "react-spinners";
-import { useSearchContext } from "../context";
+import { useSearchContext } from "../contextFactory";
 
 // Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {

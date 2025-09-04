@@ -11,7 +11,7 @@ import Worker from "../components/apiWorker.ts?worker";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
 import { PulseLoader } from "react-spinners";
-import { useSearchContext } from "../context";
+import { useSearchContext } from "../contextFactory";
 
 const dayOfTheWeekOptions = [
   { label: "Any Day", value: "any" },
