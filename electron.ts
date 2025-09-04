@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 const createNewApp = () => {
   try {
     const mainWindow = new BrowserWindow({
-      titleBarStyle: 'hidden',
+      titleBarStyle: "hidden",
       minWidth: 384,
       minHeight: 480,
       ...(process.platform === "darwin"
@@ -36,9 +36,14 @@ const createNewApp = () => {
       },
     });
 
-    
     persistentSession = session.fromPartition("persist:login");
-    mainWindow.loadURL("http://localhost:5173");
+    if (app.isPackaged) {
+      // Production mode: load the local index.html
+      mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+    } else {
+      // Development mode: load from the Vite dev server
+      mainWindow.loadURL("http://localhost:5173");
+    }
     mainWindow.setMenuBarVisibility(false);
     mainWindow.maximize();
     autoUpdater.checkForUpdates();
@@ -72,11 +77,11 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
   const cookies = await persistentSession?.cookies.get({});
   try {
     if (cookies && cookies.length > 0) {
-      for (let i = 0; i < cookies.length; i++) {
+      for (let i = 0; i < 5; i++) {
         const psTokens = cookies
           .map((cookie) => `${cookie.name}=${cookie.value}`)
           .join("; ");
-        const searchResults = await fetch(params.url, {
+        const searchResults = await fetch(`${params.url}&page=1`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -86,8 +91,39 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
         if (searchResults.ok) {
           try {
             const data = await searchResults.json();
-            return { success: true, data 
+            if (data) {
+              // Check for additional pages
+              if (data.pageCount > 1) {
+                for (let i = 2; i <= data.pageCount; i++) {
+                  try {
+                    const pageResults = await fetch(`${params.url}&page=${i}`, {
+                      method: "GET",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Cookie: psTokens,
+                      },
+                    });
+                    if (pageResults.ok) {
+                      const pageData = await pageResults.json();
+                      if (pageData) {
+                        data.classes.push(...pageData.classes);
+                      }
+                    } else {
+                      console.error(
+                        "Error occurred while fetching page results:",
+                        pageResults.statusText,
+                      );
+                    }
+                  } catch {
+                    i = i - 1;
+                    continue;
+                  }
+                }
+              }
+              return { success: true, data 
+            }
           } catch {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             continue;
           }
         } else {

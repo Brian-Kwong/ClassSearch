@@ -89,6 +89,7 @@ export type UserSearchRequestTypes = {
   instructorLastName: string[];
   instructorScore: string;
   searchTerm: string[];
+  availableCourseNumbers: string[];
 
 
 export type UniversityCourseResponse = {
@@ -106,6 +107,7 @@ export type UniversityCourseResponse = {
   subject: string;
   subject_descr: string;
   catalog_nbr: string;
+  instruction_mode: string;
   instruction_mode_descr: string;
   grading_basis: string;
   wait_tot: number;

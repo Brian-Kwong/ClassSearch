@@ -1,11 +1,6 @@
 import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import {
-  redirectURL,
-  SearchParamJson,
-  UniversityCourseResponse,
-} from "../components/types";
+import { redirectURL, UniversityCourseResponse } from "../components/types";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import SearchOptSelector from "../components/ui/searchOptSelector";
 import InputBox from "../components/ui/inputBox";
@@ -14,10 +9,12 @@ import { useSearchParams } from "react-router-dom";
 import Worker from "../components/apiWorker.ts?worker";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
+import { PulseLoader } from "react-spinners";
+import { useSearchContext } from "../context";
 
 const dayOfTheWeekOptions = [
   { label: "Any Day", value: "any" },
-  { label: "All Weekdays", value: "MTWTF" },
+  { label: "All Weekdays", value: "MTWRF" },
   { label: "Monday", value: "M" },
   { label: "Tuesday", value: "Tu" },
   { label: "Wednesday", value: "W" },
@@ -76,15 +73,11 @@ const generate_available_terms = (termType: "Semester" | "Quarter") => {
 
 
 const SearchPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
   const latestHistory = searchParams.get("latestHistory") === "true";
-  const searchOptions = useMemo(
-    () => (location.state.searchOptions as SearchParamJson) || {},
-    [location.state.searchOptions],
-  );
+  const { searchOptions, setSearchResults } = useSearchContext();
   const [triggerWarning, setTriggerWarning] = useState(true);
   const [isWorkerReady, setIsWorkerReady] = useState(false);
   const dataWorkerRef = useRef<Worker | null>(null);
@@ -116,15 +109,15 @@ const SearchPage = () => {
   const currentMonth = new Date().getMonth();
   const availableTimes = useMemo(
     () => [
-      { label: `12:00 AM`, value: `12:00 AM` },
+      { label: `12:00 AM`, value: `0.00` },
       ...Array.from({ length: 11 }, (_, i) => ({
         label: `${i + 1}:00 AM`,
-        value: `${i + 1}:00 AM`,
+        value: `${(i + 1).toString().padStart(2, "0")}.00`,
       })),
-      { label: "12:00 PM", value: "12:00 PM" },
+      { label: "12:00 PM", value: "12.00" },
       ...Array.from({ length: 11 }, (_, i) => ({
         label: `${i + 1}:00 PM`,
-        value: `${i + 1}:00 PM`,
+        value: `${(i + 1 + 12).toString().padStart(2, "0")}.00`,
       })),
     ],
     [],
@@ -147,9 +140,8 @@ const SearchPage = () => {
 
   const navigateToResults = useCallback(
     (data: UniversityCourseResponse[]) => {
-      navigate(`/results?university=${university}`, {
-        state: { searchResults: data, searchOptions },
-      });
+      setSearchResults(data);
+      navigate(`/results?university=${university}`);
     },
     [navigate, university, searchOptions],
   );
@@ -159,7 +151,7 @@ const SearchPage = () => {
 
     dataWorkerRef.current = dataWorker;
     dataWorker.onmessage = async (event) => {
-      const { status, action, url } = event.data;
+      const { status, action, url, searchParams } = event.data;
       if (status === "ready") {
         setIsWorkerReady(true);
         return;
@@ -170,24 +162,28 @@ const SearchPage = () => {
           action: "processData",
           url,
           ...result,
-          params: event.data.searchParams,
+          params: searchParams,
           forSearch: performSearch,
+          university: university,
         }); // send the data to the worker for processing
       }
       if (action === "HISTORY_RESPONSE" && latestHistory) {
         const { success, data } = event.data;
         if (success) {
           setSubject(data.params.subject || []);
-          setCourseCatalogNum(data.params.catalog_nbr || []);
-          setCourseAttributes(data.params.crse_attr_value || []);
-          setDayOfTheWeek(data.params.days || []);
-          setNumberOfUnits(data.params.units || []);
-          setStartTime(data.params.start_time_ge || []);
-          setEndTime(data.params.end_time_le || []);
-          setInstructMode(data.params.instruction_mode || []);
-          setInstructorFirstName(data.params.instr_first_name || []);
-          setInstructorLastName(data.params.instructor_name || []);
-          setInstructorScore(data.params.instructor_score || "");
+          setCourseAttributes(data.params.courseAttributes || []);
+          setDayOfTheWeek(data.params.dayOfTheWeek || []);
+          setNumberOfUnits(data.params.numberOfUnits || []);
+          setStartTime(data.params.startTime || []);
+          setEndTime(data.params.endTime || []);
+          setInstructMode(data.params.instructMode || []);
+          setInstructorScore(data.params.instructorScore || "");
+          setTimeout(() => {
+            // Any dynamically loaded data should wait for the fetch
+            setCourseCatalogNum(data.params.courseCatalogNum || []);
+            setInstructorFirstName(data.params.instructorFirstName || []);
+            setInstructorLastName(data.params.instructorLastName || []);
+          }, 2000);
           if (
             data.params.searchTerm &&
             data.params.searchTerm.length > 0 &&
@@ -217,6 +213,7 @@ const SearchPage = () => {
         dataWorkerRef.current.terminate();
       }
     
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latestHistory, navigateToResults, performSearch, searchTerm]);
 
   const submitSearch = useCallback(() => {
@@ -254,11 +251,12 @@ const SearchPage = () => {
       instructorScore: instructorScore,
       searchTerm: searchTerm,
     
-    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${encodeURIComponent(searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0] : "")}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&page=1`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${encodeURIComponent(searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0] : "")}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
     if (isWorkerReady && dataWorkerRef.current) {
       dataWorkerRef.current.postMessage({
         action: "fetchCourses",
         url,
+        university,
         params: searchParams,
         forSearch: performSearch,
       });
@@ -357,10 +355,10 @@ const SearchPage = () => {
       setAvailableCourseNumbers([]);
       setAvailableInstructorFirstNames([]);
       setAvailableInstructorLastNames([]);
-      setCourseCatalogNum([""]);
-      setInstructorFirstName([""]);
-      setInstructorLastName([""]);
-      setSubject([""]);
+      setCourseCatalogNum([]);
+      setInstructorFirstName([]);
+      setInstructorLastName([]);
+      setSubject([]);
     } else {
       setSubject(value);
     }
@@ -432,171 +430,183 @@ const SearchPage = () => {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          padding: "20px",
-          gap: "20px",
-          maxWidth: "50vw",
-        }}
-      >
-        <Text fontSize="4xl" fontWeight="bold">
-          Course Search
-        </Text>
-        <Grid
-          templateColumns={{
-            base: "1fr",
-            md: "repeat(2, 1fr)",
-            lg: "repeat(3, 1fr)",
-          }}
-          gap={4}
-        >
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={subject || [""]}
-              setSelectedValue={handleSubjectChange}
-              options={subjectOptions}
-              label="Subject"
-              multiple={false}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            {availableCourseNumbers && availableCourseNumbers.length > 0 ? (
-              <SearchOptSelector
-                selectedValue={courseCatalogNum || [""]}
-                setSelectedValue={setCourseCatalogNum}
-                options={availableCourseNumbers}
-                label="Course Catalog Number"
-                multiple={false}
-              />
-            ) : (
-              <InputBox
-                label="Course Catalog Number"
-                value={courseCatalogNum[0] || ""}
-                onChange={(e) => setCourseCatalogNum([e.target.value])}
-                loadingData={fetchingAvailableSubjectCourses}
-              />
-            )}
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={courseAttributes || [""]}
-              setSelectedValue={handleCourseAttributesChange}
-              options={courseAttributeOptions}
-              label="Course Attributes"
-              multiple={true}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={dayOfTheWeek || [""]}
-              setSelectedValue={handleDayOfTheWeekChange}
-              options={dayOfTheWeekOptions}
-              label="Day of the Week"
-              multiple={
-                dayOfTheWeek.includes("any") || dayOfTheWeek.includes("MTWTF")
-                  ? false
-                  : true
-              }
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={searchTerm || [""]}
-              setSelectedValue={handleSearchTermChange}
-              options={availableTerms}
-              label="Term"
-              multiple={false}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={numberOfUnits || [""]}
-              setSelectedValue={handleNumberOfUnitsChange}
-              options={numberOfUnitsOptions}
-              label="Number of Units"
-              multiple={false}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={startTime || [""]}
-              setSelectedValue={handleStartTimeChange}
-              options={availableTimes}
-              label="Start Time"
-              multiple={false}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={endTime || [""]}
-              setSelectedValue={handleEndTimeChange}
-              options={availableTimes}
-              label="End Time"
-              multiple={false}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            <SearchOptSelector
-              selectedValue={instructMode || [""]}
-              setSelectedValue={handleInstructModeChange}
-              options={instructModeOptions}
-              label="Instruction Mode"
-              multiple={false}
-            />
-          </GridItem>
-          <GridItem colSpan={1}>
-            {availableInstructorFirstNames &&
-            availableInstructorFirstNames.length > 0 ? (
-              <SearchOptSelector
-                selectedValue={instructorFirstName || [""]}
-                setSelectedValue={setInstructorFirstName}
-                options={availableInstructorFirstNames}
-                label="Instructor First Name"
-                multiple={false}
-              />
-            ) : (
-              <InputBox
-                label="Instructor First Name"
-                value={instructorFirstName[0] || ""}
-                onChange={handleInstructorFirstNameChange}
-                loadingData={fetchingAvailableSubjectCourses}
-              />
-            )}
-          </GridItem>
-          <GridItem colSpan={1}>
-            {availableInstructorLastNames &&
-            availableInstructorLastNames.length > 0 ? (
-              <SearchOptSelector
-                selectedValue={instructorLastName || [""]}
-                setSelectedValue={setInstructorLastName}
-                options={availableInstructorLastNames}
-                label="Instructor Last Name"
-                multiple={false}
-              />
-            ) : (
-              <InputBox
-                label="Instructor Last Name"
-                value={instructorLastName[0] || ""}
-                onChange={handleInstructorLastNameChange}
-                loadingData={fetchingAvailableSubjectCourses}
-              />
-            )}
-          </GridItem>
-          <GridItem colSpan={1}>
-            <InputBox
-              label="Instructor Score"
-              value={instructorScore}
-              onChange={handleInstructorScoreChange}
-            />
-          </GridItem>
-        </Grid>
-        <Button onClick={() => setPerformSearch(true)} bg="brand.300">
-          Search
-        </Button>
-      </div>
-      <Toaster />
+      {performSearch ? (
+        <div>
+          <PulseLoader color="#637d91" />
+          <Text fontSize="2xl" fontWeight="bold" textAlign="center" mt="20px">
+            Searching...
+          </Text>
+        </div>
+      ) : (
+        <>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              padding: "20px",
+              gap: "20px",
+              maxWidth: "50vw",
+            }}
+          >
+            <Text fontSize="4xl" fontWeight="bold">
+              Course Search
+            </Text>
+            <Grid
+              templateColumns={{
+                base: "1fr",
+                md: "repeat(2, 1fr)",
+                lg: "repeat(3, 1fr)",
+              }}
+              gap={4}
+            >
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={subject || [""]}
+                  setSelectedValue={handleSubjectChange}
+                  options={subjectOptions}
+                  label="Subject"
+                  multiple={false}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                {availableCourseNumbers && availableCourseNumbers.length > 0 ? (
+                  <SearchOptSelector
+                    selectedValue={courseCatalogNum || [""]}
+                    setSelectedValue={setCourseCatalogNum}
+                    options={availableCourseNumbers}
+                    label="Course Catalog Number"
+                    multiple={false}
+                  />
+                ) : (
+                  <InputBox
+                    label="Course Catalog Number"
+                    value={courseCatalogNum[0] || ""}
+                    onChange={(e) => setCourseCatalogNum([e.target.value])}
+                    loadingData={fetchingAvailableSubjectCourses}
+                  />
+                )}
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={courseAttributes || [""]}
+                  setSelectedValue={handleCourseAttributesChange}
+                  options={courseAttributeOptions}
+                  label="Course Attributes"
+                  multiple={true}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={dayOfTheWeek || [""]}
+                  setSelectedValue={handleDayOfTheWeekChange}
+                  options={dayOfTheWeekOptions}
+                  label="Day of the Week"
+                  multiple={
+                    dayOfTheWeek.includes("any") ||
+                    dayOfTheWeek.includes("MTWTF")
+                      ? false
+                      : true
+                  }
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={searchTerm || [""]}
+                  setSelectedValue={handleSearchTermChange}
+                  options={availableTerms}
+                  label="Term"
+                  multiple={false}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={numberOfUnits || [""]}
+                  setSelectedValue={handleNumberOfUnitsChange}
+                  options={numberOfUnitsOptions}
+                  label="Number of Units"
+                  multiple={false}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={startTime || [""]}
+                  setSelectedValue={handleStartTimeChange}
+                  options={availableTimes}
+                  label="Start Time"
+                  multiple={false}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={endTime || [""]}
+                  setSelectedValue={handleEndTimeChange}
+                  options={availableTimes}
+                  label="End Time"
+                  multiple={false}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SearchOptSelector
+                  selectedValue={instructMode || [""]}
+                  setSelectedValue={handleInstructModeChange}
+                  options={instructModeOptions}
+                  label="Instruction Mode"
+                  multiple={false}
+                />
+              </GridItem>
+              <GridItem colSpan={1}>
+                {availableInstructorFirstNames &&
+                availableInstructorFirstNames.length > 0 ? (
+                  <SearchOptSelector
+                    selectedValue={instructorFirstName || [""]}
+                    setSelectedValue={setInstructorFirstName}
+                    options={availableInstructorFirstNames}
+                    label="Instructor First Name"
+                    multiple={false}
+                  />
+                ) : (
+                  <InputBox
+                    label="Instructor First Name"
+                    value={instructorFirstName[0] || ""}
+                    onChange={handleInstructorFirstNameChange}
+                    loadingData={fetchingAvailableSubjectCourses}
+                  />
+                )}
+              </GridItem>
+              <GridItem colSpan={1}>
+                {availableInstructorLastNames &&
+                availableInstructorLastNames.length > 0 ? (
+                  <SearchOptSelector
+                    selectedValue={instructorLastName || [""]}
+                    setSelectedValue={setInstructorLastName}
+                    options={availableInstructorLastNames}
+                    label="Instructor Last Name"
+                    multiple={false}
+                  />
+                ) : (
+                  <InputBox
+                    label="Instructor Last Name"
+                    value={instructorLastName[0] || ""}
+                    onChange={handleInstructorLastNameChange}
+                    loadingData={fetchingAvailableSubjectCourses}
+                  />
+                )}
+              </GridItem>
+              <GridItem colSpan={1}>
+                <InputBox
+                  label="Instructor Score"
+                  value={instructorScore}
+                  onChange={handleInstructorScoreChange}
+                />
+              </GridItem>
+            </Grid>
+            <Button onClick={() => setPerformSearch(true)} bg="brand.300">
+              Search
+            </Button>
+          </div>
+          <Toaster />
+        </>
+      )}
     </>
   );
 

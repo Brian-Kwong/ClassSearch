@@ -5,7 +5,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ClassSearch</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css" />
   </head>
   <body>
     <div id="title-bar">
@@ -13,11 +13,6 @@
     </div>
     <div id="content">
       <div id="root"></div>
-      <script>
-        window.onload = () => {
-          document.body.classList.add(`platform-${window.electron.platform}`);
-        
-      </script>
       <script type="module" src="/src/main.tsx"></script>
       <!-- <script src="https://unpkg.com/react-scan/dist/auto.global.js"></script>  Uncomment this line to enable react-scan -->
     </div>

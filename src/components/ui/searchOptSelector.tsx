@@ -5,9 +5,7 @@ import {
   useFilter,
   Tag,
 } from "@chakra-ui/react";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useCallback } from "react";
-import { flushSync } from "react-dom";
+import { useCallback } from "react";
 import React from "react";
 
 type SearchOptSelectorProps = {
@@ -26,29 +24,12 @@ const SearchOptSelector = ({
   multiple = true,
 }: SearchOptSelectorProps) => {
   const { contains } = useFilter({ sensitivity: "base" });
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const { collection: optionsList, filter } = useListCollection({
     initialItems: options,
     filter: contains,
+    limit: 100,
   });
-
-  const virtualizer = useVirtualizer({
-    count: optionsList.items.length,
-    getScrollElement: () => containerRef.current,
-    estimateSize: () => 100,
-    overscan: 5,
-    scrollPaddingEnd: 32,
-  });
-
-  const handleScrollToIndexFn = (details: { index: number }) => {
-    flushSync(() => {
-      virtualizer.scrollToIndex(details.index, {
-        align: "center",
-        behavior: "auto",
-      });
-    });
-  
 
   const handleValueChange = useCallback(
     (valueDetails: { value: string[] }) => {
@@ -73,7 +54,6 @@ const SearchOptSelector = ({
       onValueChange={handleValueChange}
       value={selectedValue}
       onInputValueChange={handleInputValueChange}
-      scrollToIndexFn={handleScrollToIndexFn}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -93,9 +73,9 @@ const SearchOptSelector = ({
             gap: "4px",
           }}
         >
-          {virtualizer.getVirtualItems().map((val) => {
+          {selectedValue.map((val) => {
             return (
-              <Tag.Root>
+              <Tag.Root key={val}>
                 <Tag.Label
                   style={{
                     whiteSpace: "nowrap",
@@ -103,14 +83,12 @@ const SearchOptSelector = ({
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {val.key}
+                  {val}
                 </Tag.Label>
                 <Tag.EndElement>
                   <Tag.CloseTrigger
                     onClick={() =>
-                      setSelectedValue(
-                        selectedValue.filter((v) => v !== val.key),
-                      )
+                      setSelectedValue(selectedValue.filter((v) => v !== val))
                     }
                   />
                 </Tag.EndElement>

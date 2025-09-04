@@ -1,7 +1,8 @@
 import "./App.css";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createHashRouter } from "react-router-dom";
 import React from "react";
 import { PulseLoader } from "react-spinners";
+import { SearchProvider } from "./context";
 
 function App() {
   const Redirect = React.lazy(() => import("./pages/redirect"));
@@ -9,7 +10,7 @@ function App() {
   const SelectCSU = React.lazy(() => import("./pages/selectcsu"));
   const Results = React.lazy(() => import("./pages/searchResults"));
 
-  const routes = createBrowserRouter([
+  const routes = createHashRouter([
     {
       path: "/",
       element: (
@@ -46,7 +47,9 @@ function App() {
 
   return (
     <>
-      <RouterProvider router={routes} />
+      <SearchProvider>
+        <RouterProvider router={routes} />
+      </SearchProvider>
     </>
   );
 }

@@ -78,20 +78,9 @@
     ],
     "appId": "com.brian-kwong.csu-class-search",
     "productName": "CSU Class Search",
-    "mac": {
-      "icons": [
-        "src/assets/icons/mac/icon.icns"
-      ]
+    "directories": {
+      "buildResources": "buildResources"
     },
-    "win": {
-      "icons": [
-        "src/assets/icons/win/icon.ico"
-      ]
-    },
-    "linux": {
-      "icons": [
-        "src/assets/icons/png"
-      ]
-    }
+    "icon": "buildResources/icon.png"
   }
 }

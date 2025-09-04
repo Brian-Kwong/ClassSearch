@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Error from "./error";
 import { redirectURL, SearchParamJson } from "../components/types";
 import { PulseLoader } from "react-spinners";
+import { useSearchContext } from "../context";
 
 // Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {
@@ -21,6 +22,7 @@ declare global {
 const Redirect = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { setSearchOptions } = useSearchContext();
   const university = searchParams.get("university");
   const [universityInfo, setUniversityInfo] = useState<SearchParamJson | null>(
     null,
@@ -45,10 +47,9 @@ const Redirect = () => {
   useEffect(() => {
     if (!universityInfo) return;
     // Handle universityInfo changes
-    navigate(`/search?university=${university}`, {
-      state: { searchOptions: universityInfo },
-    });
-  }, [university, universityInfo, navigate]);
+    setSearchOptions(universityInfo);
+    navigate(`/search?university=${university}`);
+  }, [university, universityInfo, navigate, setSearchOptions]);
 
   return (
     <>
