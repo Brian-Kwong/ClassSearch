@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { redirectURL, UniversityCourseResponse } from "../components/types";
@@ -213,7 +214,6 @@ const SearchPage = () => {
         dataWorkerRef.current.terminate();
       }
     
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latestHistory, navigateToResults, performSearch, searchTerm]);
 
   const submitSearch = useCallback(() => {
@@ -262,7 +262,6 @@ const SearchPage = () => {
       });
       setFetchingAvailableSubjectCourses(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     courseAttributes,
     courseCatalogNum,

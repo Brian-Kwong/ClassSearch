@@ -22,6 +22,11 @@ const createNewApp = () => {
   try {
     const mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
+      titleBarOverlay: {
+        color: "#2c3e50",
+        symbolColor: "#74b1be",
+        height: 30,
+      },
       minWidth: 384,
       minHeight: 480,
       ...(process.platform === "darwin"

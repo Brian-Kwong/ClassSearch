@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ClassInfoCard from "../components/ui/classInfoCard";
 import { Button, HStack, Stack, Text } from "@chakra-ui/react";
-import { useSearchContext } from "../context";
+import { useSearchContext } from "../contextFactory";
 
 const SearchResultsPage = () => {
   const navigate = useNavigate();
