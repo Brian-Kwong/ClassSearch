@@ -89,7 +89,6 @@ export type UserSearchRequestTypes = {
   instructorLastName: string[];
   instructorScore: string;
   searchTerm: string[];
-  availableCourseNumbers: string[];
 
 
 export type UniversityCourseResponse = {

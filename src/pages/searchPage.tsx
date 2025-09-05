@@ -77,8 +77,13 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
-  const latestHistory = searchParams.get("latestHistory") === "true";
-  const { searchOptions, setSearchResults } = useSearchContext();
+  const latestHistory = false;
+  const {
+    searchOptions,
+    setSearchResults,
+    searchQueryParams,
+    setSearchQueryParams,
+  } = useSearchContext();
   const [triggerWarning, setTriggerWarning] = useState(true);
   const [isWorkerReady, setIsWorkerReady] = useState(false);
   const dataWorkerRef = useRef<Worker | null>(null);
@@ -89,7 +94,7 @@ const SearchPage = () => {
   const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
     { label: string; value: string }[]
   >([]);
-  const [courseCatalogNum, setCourseCatalogNum] = useState<string[]>([""]);
+  const [courseCatalogNum, setCourseCatalogNum] = useState<string[]>([]);
   const [courseAttributes, setCourseAttributes] = useState<string[]>([]);
   const [dayOfTheWeek, setDayOfTheWeek] = useState<string[]>([]);
   const [numberOfUnits, setNumberOfUnits] = useState<string[]>([]);
@@ -98,30 +103,21 @@ const SearchPage = () => {
   const [instructMode, setInstructMode] = useState<string[]>([]);
   const [availableInstructorFirstNames, setAvailableInstructorFirstNames] =
     useState<{ label: string; value: string }[]>([]);
-  const [instructorFirstName, setInstructorFirstName] = useState<string[]>([
-    "",
-  ]);
+  const [instructorFirstName, setInstructorFirstName] = useState<string[]>([]);
   const [availableInstructorLastNames, setAvailableInstructorLastNames] =
     useState<{ label: string; value: string }[]>([]);
-  const [instructorLastName, setInstructorLastName] = useState<string[]>([""]);
+  const [instructorLastName, setInstructorLastName] = useState<string[]>([]);
   const [instructorScore, setInstructorScore] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string[]>([]);
   const [termType] = useState<"Semester" | "Quarter">("Quarter");
   const currentMonth = new Date().getMonth();
-  const availableTimes = useMemo(
-    () => [
-      { label: `12:00 AM`, value: `0.00` },
-      ...Array.from({ length: 11 }, (_, i) => ({
-        label: `${i + 1}:00 AM`,
-        value: `${(i + 1).toString().padStart(2, "0")}.00`,
-      })),
-      { label: "12:00 PM", value: "12.00" },
-      ...Array.from({ length: 11 }, (_, i) => ({
-        label: `${i + 1}:00 PM`,
-        value: `${(i + 1 + 12).toString().padStart(2, "0")}.00`,
-      })),
-    ],
-    [],
+
+  const navigateToResults = useCallback(
+    (data: UniversityCourseResponse[]) => {
+      setSearchResults(data);
+      navigate(`/results?university=${university}`);
+    },
+    [navigate, university, searchOptions],
   );
 
   useEffect(() => {
@@ -138,14 +134,6 @@ const SearchPage = () => {
               : "Winter";
     setSearchTerm([currentTerm]);
   }, [currentMonth, searchOptions.selected_term, termType]);
-
-  const navigateToResults = useCallback(
-    (data: UniversityCourseResponse[]) => {
-      setSearchResults(data);
-      navigate(`/results?university=${university}`);
-    },
-    [navigate, university, searchOptions],
-  );
 
   useEffect(() => {
     const dataWorker = new Worker();
@@ -282,6 +270,42 @@ const SearchPage = () => {
   ]);
 
   useEffect(() => {
+    setSearchQueryParams({
+      subject,
+      courseCatalogNum,
+      courseAttributes,
+      dayOfTheWeek,
+      numberOfUnits,
+      startTime,
+      endTime,
+      instructMode,
+      instructorFirstName,
+      instructorLastName,
+      instructorScore,
+      searchTerm,
+      availableCourseNumbers,
+      availableInstructorFirstNames,
+      availableInstructorLastNames,
+    });
+  }, [
+    subject,
+    courseCatalogNum,
+    courseAttributes,
+    dayOfTheWeek,
+    numberOfUnits,
+    startTime,
+    endTime,
+    instructMode,
+    instructorFirstName,
+    instructorLastName,
+    instructorScore,
+    searchTerm,
+    availableCourseNumbers,
+    availableInstructorFirstNames,
+    availableInstructorLastNames,
+  ]);
+
+  useEffect(() => {
     if (subject.length > 0 && subject[0] !== "") {
       submitSearch();
     }
@@ -292,6 +316,22 @@ const SearchPage = () => {
       submitSearch();
     }
   }, [performSearch, submitSearch]);
+
+  const availableTimes = useMemo(
+    () => [
+      { label: `12:00 AM`, value: `0.00` },
+      ...Array.from({ length: 11 }, (_, i) => ({
+        label: `${i + 1}:00 AM`,
+        value: `${(i + 1).toString().padStart(2, "0")}.00`,
+      })),
+      { label: "12:00 PM", value: "12.00" },
+      ...Array.from({ length: 11 }, (_, i) => ({
+        label: `${i + 1}:00 PM`,
+        value: `${(i + 1 + 12).toString().padStart(2, "0")}.00`,
+      })),
+    ],
+    [],
+  );
 
   const availableTerms = useMemo(
     () => generate_available_terms(termType),
@@ -347,6 +387,98 @@ const SearchPage = () => {
       })),
     [],
   );
+
+  useEffect(() => {
+    setSubject(
+      searchQueryParams.subject.length > 0 ? searchQueryParams.subject : [],
+    );
+  }, [subjectOptions]);
+
+  useEffect(() => {
+    setTimeout(
+      () =>
+        setCourseCatalogNum(
+          searchQueryParams.courseCatalogNum.length > 0
+            ? searchQueryParams.courseCatalogNum
+            : [],
+        ),
+      1000,
+    );
+  }, []);
+
+  useEffect(() => {
+    if (
+      searchQueryParams.searchTerm.length > 0 &&
+      searchQueryParams.searchTerm[0] !== ""
+    ) {
+      setSearchTerm(searchQueryParams.searchTerm);
+    }
+  }, [availableTerms]);
+
+  useEffect(() => {
+    setStartTime(
+      searchQueryParams.startTime.length > 0 ? searchQueryParams.startTime : [],
+    );
+    setEndTime(
+      searchQueryParams.endTime.length > 0 ? searchQueryParams.endTime : [],
+    );
+  }, [availableTimes]);
+
+  useEffect(() => {
+    setCourseAttributes(
+      searchQueryParams.courseAttributes.length > 0
+        ? searchQueryParams.courseAttributes
+        : [],
+    );
+  }, [courseAttributeOptions]);
+
+  useEffect(() => {
+    setInstructMode(
+      searchQueryParams.instructMode.length > 0
+        ? searchQueryParams.instructMode
+        : [],
+    );
+  }, [instructModeOptions]);
+
+  useEffect(() => {
+    setNumberOfUnits(
+      searchQueryParams.numberOfUnits.length > 0
+        ? searchQueryParams.numberOfUnits
+        : [],
+    );
+  }, [numberOfUnitsOptions]);
+
+  useEffect(() => {
+    setTimeout(
+      () =>
+        setInstructorFirstName(
+          searchQueryParams.instructorFirstName.length > 0
+            ? searchQueryParams.instructorFirstName
+            : [],
+        ),
+      1000,
+    );
+  }, []);
+
+  useEffect(() => {
+    setTimeout(
+      () =>
+        setInstructorLastName(
+          searchQueryParams.instructorLastName.length > 0
+            ? searchQueryParams.instructorLastName
+            : [],
+        ),
+      1000,
+    );
+  }, []);
+
+  useEffect(() => {
+    setDayOfTheWeek(
+      searchQueryParams.dayOfTheWeek.length > 0
+        ? searchQueryParams.dayOfTheWeek
+        : [],
+    );
+  }, [dayOfTheWeekOptions]);
 
   // useCallback handlers for all selectors
   const handleSubjectChange = React.useCallback((value: string[]) => {
