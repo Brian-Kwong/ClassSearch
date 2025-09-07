@@ -17,7 +17,9 @@ declare global {
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
       getModelPath: () => Promise<string | null>;
       semanticSearch: {
-        performIconSearch: (query: { courses: { subject_descr: string }[] }) => Promise<{ lib: string; name: string }[]>;
+        performIconSearch: (query: {
+          courses: { subject_descr: string }[];
+        }) => Promise<{ lib: string; name: string }[]>;
         setup: () => Promise<void>;
       
     

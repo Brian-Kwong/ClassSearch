@@ -98,7 +98,6 @@ async function fetchIconMetadata() {
   return iconSet;
 }
 
-
 const embeddingFunction = {
   sourceColumn: "text",
   embed: async (courses: string[]) => {
@@ -108,12 +107,14 @@ const embeddingFunction = {
     );
     const results: number[][] = [];
     for (const course of courses) {
-      const embedding = await model(course, { pooling: "mean", normalize: true });
+      const embedding = await model(course, {
+        pooling: "mean",
+        normalize: true,
+      });
       results.push(Array.from(embedding.data));
     }
     return results;
   },
-}
 
 
 async function createVectorDB(dbUrl = "data/local-db") {
@@ -129,7 +130,10 @@ async function createVectorDB(dbUrl = "data/local-db") {
 }
 
 // Only run if this file is executed directly
-if (import.meta.url === process.argv[1] || import.meta.url === `file://${process.argv[1]}`) {
+if (
+  import.meta.url === process.argv[1] ||
+  import.meta.url === `file://${process.argv[1]}`
+) {
   await createVectorDB("dist-electron/data/local-db");
 }
 

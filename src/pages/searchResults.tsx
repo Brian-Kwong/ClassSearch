@@ -15,13 +15,15 @@ declare global {
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
       getModelPath: () => Promise<string | null>;
       semanticSearch: {
-        performIconSearch: (query: { courses: { subject_descr: string }[] }) => Promise<{ lib: string; name: string }[]>;
+        performIconSearch: (query: {
+          courses: { subject_descr: string }[];
+        }) => Promise<{ lib: string; name: string }[]>;
         setup: () => Promise<void>;
       
     
   }
 }
-  
+
 const SearchResultsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -48,18 +50,22 @@ const SearchResultsPage = () => {
       try {
         const courses = searchResults.map((course) => ({
           // Removes all Roman numerical suffixes from the description
-          subject_descr: course.descr.replace(/ *\b(I|II|III|IV|V|VI|VII|VIII|IX|X)\b */g, "").trim(),
+          subject_descr: course.descr
+            .replace(/ *\b(I|II|III|IV|V|VI|VII|VIII|IX|X)\b */g, "")
+            .trim(),
         }));
-        const results = await window.electronAPI.semanticSearch.performIconSearch({ courses });
+        const results =
+          await window.electronAPI.semanticSearch.performIconSearch({
+            courses,
+          });
         setIcons(results);
       } catch (error) {
         console.error("Error performing semantic search:", error);
       }
-    }
+    
     fetchIcons();
   }, [modelLoaded, searchResults]);
 
-  
   return (
     <Stack>
       <HStack justifyContent={"space-between"} padding={2} flexWrap={"wrap"}>

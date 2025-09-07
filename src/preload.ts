@@ -11,7 +11,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   fetchCourses: (url: string) => ipcRenderer.invoke("searchRequest", { url }),
   getModelPath: () => ipcRenderer.invoke("getModelPath"),
   semanticSearch: {
-    performIconSearch: (query: { courses: { subject_descr: string }[] }) => ipcRenderer.invoke("performIconSearch", { query }),
+    performIconSearch: (query: { courses: { subject_descr: string }[] }) =>
+      ipcRenderer.invoke("performIconSearch", { query }),
     setup: () => ipcRenderer.invoke("loadModel"),
   },
 });

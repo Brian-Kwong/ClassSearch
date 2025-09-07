@@ -11,7 +11,7 @@ import type { Session } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import { error } from "console";
-import { Worker } from 'worker_threads';
+import { Worker } from "worker_threads";
 // import fetch from 'node-fetch-cache';
 
 export let persistentSession: Session | null = null;
@@ -58,7 +58,6 @@ const createNewApp = () => {
   } catch (error) {
     console.error("Error occurred while creating the main window:", error);
   }
-
 
 
 app.whenReady().then(createNewApp);
@@ -171,15 +170,15 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
 ipcMain.handle("loadModel", async () => {
   return new Promise<void>((resolve, reject) => {
     if (!worker || worker.threadId === -1) {
-      worker = new Worker(path.join(__dirname, 'src', 'modelWorker.js'));
+      worker = new Worker(path.join(__dirname, "src", "modelWorker.js"));
     }
-    worker.postMessage({ type: 'loadModel' });
-    worker.on('message', (message) => {
-      if (message.type === 'modelLoaded') {
+    worker.postMessage({ type: "loadModel" });
+    worker.on("message", (message) => {
+      if (message.type === "modelLoaded") {
         resolve();
       }
     });
-    worker.on('error', (err) => {
+    worker.on("error", (err) => {
       console.error("Worker error:", err);
       reject(err);
       worker.terminate();
@@ -187,21 +186,30 @@ ipcMain.handle("loadModel", async () => {
   });
 });
 
-ipcMain.handle("performIconSearch", async (_event, params: { query: { courses: { subject_descr: string }[] } }) => {
-  return new Promise<{ lib: string; name: string }[]>((resolve, reject) => {
-    worker.postMessage({ type: 'semanticSearch', courses: params.query.courses });
-    worker.on('message', (message) => {
-      if (message.type === 'semanticSearchResults') {
-        resolve(message.results);
-      }
+ipcMain.handle(
+  "performIconSearch",
+  async (
+    _event,
+    params: { query: { courses: { subject_descr: string }[] } },
+  ) => {
+    return new Promise<{ lib: string; name: string }[]>((resolve, reject) => {
+      worker.postMessage({
+        type: "semanticSearch",
+        courses: params.query.courses,
+      });
+      worker.on("message", (message) => {
+        if (message.type === "semanticSearchResults") {
+          resolve(message.results);
+        }
+      });
+      worker.on("error", (err) => {
+        console.error("Worker error during semantic search:", err);
+        reject(err);
+        worker.terminate();
+      });
     });
-    worker.on('error', (err) => {
-      console.error("Worker error during semantic search:", err);
-      reject(err);
-      worker.terminate();
-    });
-  });
-});
+  },
+);
 
 app.on("window-all-closed", () => {
   if (worker) {

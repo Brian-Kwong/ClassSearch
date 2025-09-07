@@ -9,5 +9,11 @@
     "strict": true,
     "types": ["node", "electron"]
   },
-  "include": ["electron.ts", "src/components/types.ts", "src/preload.ts", "src/modelWorker.ts", "model.ts"]
+  "include": [
+    "electron.ts",
+    "src/components/types.ts",
+    "src/preload.ts",
+    "src/modelWorker.ts",
+    "model.ts"
+  ]
 }
