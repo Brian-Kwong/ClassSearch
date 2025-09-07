@@ -3,7 +3,7 @@ The following node script generates a basic model to fetch and vectorize icon me
 */
 
 import { pipeline } from "@huggingface/transformers";
-import lancedb from "vectordb";
+import lancedb from "@lancedb/lancedb";
 
 async function fetchIconMetadata() {
   const metadata: Record<string, { name: string; aliases: string }[]> = {
@@ -98,35 +98,34 @@ async function fetchIconMetadata() {
   return iconSet;
 }
 
-const embeddingFunction = {
-  sourceColumn: "text",
-  embed: async (courses: string[]) => {
-    const model = await pipeline(
-      "feature-extraction",
-      "sentence-transformers/all-MiniLM-L6-v2",
-    );
-    const results: number[][] = [];
-    for (const course of courses) {
-      const embedding = await model(course, {
-        pooling: "mean",
-        normalize: true,
-      });
-      results.push(Array.from(embedding.data));
-    }
-    return results;
-  },
-
-
-async function createVectorDB(dbUrl = "data/local-db") {
+async function makeEmbeddings() {
   const iconData = await fetchIconMetadata();
-  const db = await lancedb.connect(dbUrl);
-  // Check if the icon table already exists If so drop it
+  const model = await pipeline(
+    "feature-extraction",
+    "sentence-transformers/all-MiniLM-L6-v2",
+  );
+  const texts = iconData.map((icon) => `${icon.name} ${icon.aliases}`);
+  const embeddings = await Promise.all(
+    texts.map((text) => model(text, { pooling: "mean", normalize: true })),
+  );
+  const mappedEmbeddings = iconData.map((icon, idx) => ({
+    ...icon,
+    text: `${icon.name} ${icon.aliases}`,
+    // eslint-disable-next-line security/detect-object-injection
+    vector: Array.from(embeddings[idx].data),
+  }));
+  return mappedEmbeddings;
+}
+
+async function createVectorDB(_dbPath: string = "data/local-db") {
+  const mappedEmbeddings = await makeEmbeddings();
+  const db = await lancedb.connect(_dbPath);
   const existingTables = await db.tableNames();
   if (existingTables.includes("icons")) {
     await db.dropTable("icons");
   }
-  await db.createTable("icons", iconData, embeddingFunction);
-  console.info("Vector DB created and populated with icon metadata.");
+  await db.createTable("icons", mappedEmbeddings);
+  console.log("Vector database created with icons table.");
 }
 
 // Only run if this file is executed directly

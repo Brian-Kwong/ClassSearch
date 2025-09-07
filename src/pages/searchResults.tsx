@@ -4,6 +4,7 @@ import { Button, HStack, Stack, Text } from "@chakra-ui/react";
 import { useSearchContext } from "../contextFactory";
 import { useEffect, useState } from "react";
 import { SearchParamJson } from "../components/types";
+import { Virtuoso } from "react-virtuoso";
 
 // Add a type declaration for window.electron
 declare global {
@@ -85,17 +86,17 @@ const SearchResultsPage = () => {
           Revise Search Parameters
         </Button>
       </HStack>
-      {searchResults ? (
-        searchResults.map((course, index) => (
+      <Virtuoso
+        data={searchResults}
+        style={{ height: "80vh", scrollbarWidth: "none" }}
+        itemContent={(index, course) => (
           <ClassInfoCard
             key={index}
             course={course}
             iconName={icons.at(index) || { lib: "mdi", name: "book" }}
           />
-        ))
-      ) : (
-        <Text>No results found</Text>
-      )}
+        )}
+      />
     </Stack>
   );
 

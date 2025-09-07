@@ -31,6 +31,8 @@ const ClassInfoCard = ({
 
   return (
     <Card.Root
+      marginTop={2}
+      marginBottom={2}
       width={"100%"}
       boxShadow={isDarkMode ? "dark-lg" : "lg"}
       background={isDarkMode ? "gray.700" : "gray.100"}

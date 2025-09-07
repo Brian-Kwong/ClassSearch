@@ -1,6 +1,6 @@
 import { parentPort } from "worker_threads";
 import { FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
-import lancedb from "vectordb";
+import lancedb from "@lancedb/lancedb";
 import path from "path";
 import { fileURLToPath } from "url";
 import { iconModelDBEntry } from "./components/types";
@@ -57,9 +57,9 @@ if (parentPort) {
           continue;
         } else {
           const results = await lookupTable
-            .search(Array.from(embeddings.data))
+            .vectorSearch(Array.from(embeddings.data))
             .limit(1)
-            .execute();
+            .toArray();
           if (results.length > 0) {
             // Casts to the model database type Look in `./model.ts` for the schema
             const topResult = results[0] as iconModelDBEntry;
