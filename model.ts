@@ -133,7 +133,7 @@ if (
   import.meta.url === process.argv[1] ||
   import.meta.url === `file://${process.argv[1]}`
 ) {
-  await createVectorDB("dist-electron/data/local-db");
+  await createVectorDB("data/local-db");
 }
 
 export default createVectorDB;

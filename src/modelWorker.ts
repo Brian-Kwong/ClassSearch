@@ -1,17 +1,20 @@
-import { parentPort } from "worker_threads";
-import { FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
+import { parentPort, workerData } from "worker_threads";
+import { FeatureExtractionPipeline, pipeline, env } from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
 import path from "path";
-import { fileURLToPath } from "url";
 import { iconModelDBEntry } from "./components/types";
 import createVectorDB from "../model.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 let searchPipeline: FeatureExtractionPipeline | null = null;
 let lookupTable: lancedb.Table | null = null;
 
+
+const userDataPath = workerData.userDataPath;
+const dbPath = workerData.dbPath;
+
+env.allowRemoteModels = true;
+env.cacheDir = path.join(userDataPath, 'model-cache');
 if (parentPort) {
   parentPort.on("message", async (message) => {
     if (message.type === "loadModel") {
@@ -25,13 +28,12 @@ if (parentPort) {
           "feature-extraction",
           "sentence-transformers/all-MiniLM-L6-v2",
         )) as FeatureExtractionPipeline;
-        const dbPath = path.join(__dirname, "..", "data", "local-db");
         try {
           const db = await lancedb.connect(dbPath);
           lookupTable = await db.openTable("icons");
         } catch {
           console.warn("Error opening lookup table: Recreating table ....");
-          await createVectorDB();
+          await createVectorDB(path.join(process.resourcesPath, "data", "local-db"));
           const db = await lancedb.connect(dbPath);
           lookupTable = await db.openTable("icons");
         }

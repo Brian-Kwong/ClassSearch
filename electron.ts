@@ -20,7 +20,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let worker: Worker;
+const userDataPath = app.getPath('userData');
+const dbPath = app.isPackaged ? path.join(process.resourcesPath, "data", "local-db") : path.join(__dirname, "data", "local-db");
 
+// Ensure the data directory exists
 const createNewApp = () => {
   try {
     const mainWindow = new BrowserWindow({
@@ -170,7 +173,9 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
 ipcMain.handle("loadModel", async () => {
   return new Promise<void>((resolve, reject) => {
     if (!worker || worker.threadId === -1) {
-      worker = new Worker(path.join(__dirname, "src", "modelWorker.js"));
+      worker = new Worker(path.join(__dirname, "src", "modelWorker.js"), {
+        workerData: { userDataPath, dbPath},
+      });
     }
     worker.postMessage({ type: "loadModel" });
     worker.on("message", (message) => {
