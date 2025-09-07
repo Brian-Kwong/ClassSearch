@@ -145,3 +145,11 @@ export type UniversityCourseResponse = {
   notes: Array<unknown>;
   icons: Array<unknown>;
 
+
+export type iconModelDBEntry = {
+  lib: string;
+  name: string;
+  aliases: string;
+  text: string;
+  vector: number[];
+

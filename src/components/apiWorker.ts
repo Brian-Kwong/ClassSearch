@@ -1,7 +1,6 @@
 import { UniversityCourseResponse, UserSearchRequestTypes } from "./types";
 import { parseFullName } from "parse-full-name";
 import { openDB, DBSchema } from "idb";
-
 interface CourseDB extends DBSchema {
   coursesSearches: {
     key: string;

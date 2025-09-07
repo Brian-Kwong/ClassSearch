@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Node",
     "outDir": "dist-electron",
@@ -9,5 +9,5 @@
     "strict": true,
     "types": ["node", "electron"]
   },
-  "include": ["electron.ts", "src/components/types.ts", "preload.ts"]
+  "include": ["electron.ts", "src/components/types.ts", "src/preload.ts", "src/modelWorker.ts", "model.ts"]
 }

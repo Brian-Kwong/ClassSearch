@@ -1,6 +1,5 @@
 import { Card, HStack, Stack, Icon, Text } from "@chakra-ui/react";
 import { UniversityCourseResponse } from "../types";
-import { MdComputer } from "react-icons/md";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { LuBuilding2 } from "react-icons/lu";
 import { useTheme } from "next-themes";
@@ -10,6 +9,7 @@ import { RiListCheck } from "react-icons/ri";
 import { FaRegClock } from "react-icons/fa";
 import DaysOfTheWeek from "../../assets/daysOfWeek.svg?react";
 import { FaCalendarDay } from "react-icons/fa";
+import { Icon as Iconify } from "@iconify/react";
 
 function formatTime(timeString: string): string | undefined {
   try {
@@ -19,9 +19,16 @@ function formatTime(timeString: string): string | undefined {
   }
 }
 
-const ClassInfoCard = ({ course }: { course: UniversityCourseResponse }) => {
+const ClassInfoCard = ({
+  course,
+  iconName,
+}: {
+  course: UniversityCourseResponse;
+  iconName: { lib: string; name: string 
+}) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
+
   return (
     <Card.Root
       width={"100%"}
@@ -55,7 +62,7 @@ const ClassInfoCard = ({ course }: { course: UniversityCourseResponse }) => {
               gap={1}
               width={{ base: "100%", md: "10%" }}
             >
-              <Icon as={MdComputer} boxSize={{ base: 8, md: 16 }} />
+              <Iconify icon={`${iconName.lib}:${iconName.name}`} width="60%" />
               <Text
                 textStyle="body"
                 color={isDarkMode ? "white" : "black"}

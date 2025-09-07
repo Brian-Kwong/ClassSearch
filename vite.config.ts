@@ -15,4 +15,8 @@ export default defineConfig({
     svgr(),
     tsconfigPaths(),
   ],
+  define: {
+    "process.env": {
+    },
+  },
 });
