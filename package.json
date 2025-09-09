@@ -87,7 +87,7 @@
       "buildResources": "buildResources"
     },
     "icon": "buildResources/icon.png",
-    "extraResources":[
+    "extraResources": [
       "data/local-db/**/*"
     ],
     "asarUnpack": [

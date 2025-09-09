@@ -1,20 +1,20 @@
 import { parentPort, workerData } from "worker_threads";
-import { FeatureExtractionPipeline, pipeline, env } from "@huggingface/transformers";
+import {
+  FeatureExtractionPipeline,
+  pipeline,
+  env,
+} from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
 import path from "path";
 import { iconModelDBEntry } from "./components/types";
 import createVectorDB from "../model.js";
 
-
 let searchPipeline: FeatureExtractionPipeline | null = null;
 let lookupTable: lancedb.Table | null = null;
-
 
 const userDataPath = workerData.userDataPath;
 const dbPath = workerData.dbPath;
 
-env.allowRemoteModels = true;
-env.cacheDir = path.join(userDataPath, 'model-cache');
 if (parentPort) {
   parentPort.on("message", async (message) => {
     if (message.type === "loadModel") {
@@ -33,7 +33,7 @@ if (parentPort) {
           lookupTable = await db.openTable("icons");
         } catch {
           console.warn("Error opening lookup table: Recreating table ....");
-          await createVectorDB(path.join(process.resourcesPath, "data", "local-db"));
+          await createVectorDB(path.join(dbPath));
           const db = await lancedb.connect(dbPath);
           lookupTable = await db.openTable("icons");
         }

@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-non-literal-fs-filename */
 import {
   app,
   BrowserWindow,
@@ -12,6 +13,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { error } from "console";
 import { Worker } from "worker_threads";
+import { pipeline, env } from "@huggingface/transformers";
+import fs from "fs";
 // import fetch from 'node-fetch-cache';
 
 export let persistentSession: Session | null = null;
@@ -20,8 +23,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let worker: Worker;
-const userDataPath = app.getPath('userData');
-const dbPath = app.isPackaged ? path.join(process.resourcesPath, "data", "local-db") : path.join(__dirname, "data", "local-db");
+const userDataPath = app.getPath("userData");
+const dbPath = app.isPackaged
+  ? path.join(process.resourcesPath, "data", "local-db")
+  : path.join(__dirname, "data", "local-db");
 
 // Ensure the data directory exists
 const createNewApp = () => {
@@ -171,10 +176,21 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
 });
 
 ipcMain.handle("loadModel", async () => {
+  if (fs.existsSync(path.join(userDataPath, "model-cache")) === false) {
+    fs.mkdirSync(path.join(userDataPath, "model-cache"));
+    env.allowRemoteModels = true;
+    env.cacheDir = path.join(userDataPath, "model-cache");
+    await pipeline(
+      "feature-extraction",
+      "sentence-transformers/all-MiniLM-L6-v2",
+    );
+  }
   return new Promise<void>((resolve, reject) => {
     if (!worker || worker.threadId === -1) {
+      // Check if the cache folder exists, if not create it
+      console.log("UserPath is:", userDataPath);
       worker = new Worker(path.join(__dirname, "src", "modelWorker.js"), {
-        workerData: { userDataPath, dbPath},
+        workerData: { userDataPath, dbPath, isPackaged: app.isPackaged },
       });
     }
     worker.postMessage({ type: "loadModel" });

@@ -41,7 +41,7 @@ const Redirect = () => {
     if (!university) return;
     if (isCreatingLoginWindow.current) return;
     isCreatingLoginWindow.current = true;
-    const url = `${redirectURL[university as keyof typeof redirectURL]}`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}EMPLOYEE/HRMS/s/WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula.IScript_ClassSearchOptions`;
     window.electronAPI
       .firstLogin(url)
       .then((result: SearchParamJson | null) => {
