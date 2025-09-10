@@ -10,6 +10,7 @@ import { FaRegClock } from "react-icons/fa";
 import DaysOfTheWeek from "../../assets/daysOfWeek.svg?react";
 import { FaCalendarDay } from "react-icons/fa";
 import { Icon as Iconify } from "@iconify/react";
+import { TeacherRatings } from "../types";
 
 function formatTime(timeString: string): string | undefined {
   try {
@@ -22,9 +23,11 @@ function formatTime(timeString: string): string | undefined {
 const ClassInfoCard = ({
   course,
   iconName,
+  professorRating,
 }: {
   course: UniversityCourseResponse;
   iconName: { lib: string; name: string 
+  professorRating?: TeacherRatings;
 }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -96,6 +99,14 @@ const ClassInfoCard = ({
                   textStyle="label"
                   color={isDarkMode ? "white" : "black"}
                 >{`${course.instructors.map((instr) => instr.name).join(", ")}`}</Text>
+                {professorRating && (
+                  <Text
+                    textStyle="caption"
+                    color={isDarkMode ? "white" : "black"}
+                  >{`(${professorRating.avgRating.toFixed(
+                    1,
+                  )} ★ from ${professorRating.numRatings} ratings)`}</Text>
+                )}
               </HStack>
               <HStack>
                 <Icon as={LuBuilding2} boxSize={{ base: 8 }} />

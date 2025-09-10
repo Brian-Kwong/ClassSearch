@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   firstLogin: (url: string) => ipcRenderer.invoke("firstLogin", { url }),
   fetchCourses: (url: string) => ipcRenderer.invoke("searchRequest", { url }),
   getModelPath: () => ipcRenderer.invoke("getModelPath"),
+  getRMPInfo: (school: string) => ipcRenderer.invoke("getRMPInfo", { school }),
   semanticSearch: {
     performIconSearch: (query: { courses: { subject_descr: string }[] }) =>
       ipcRenderer.invoke("performIconSearch", { query }),

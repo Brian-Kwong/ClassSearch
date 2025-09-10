@@ -125,7 +125,6 @@ async function createVectorDB(_dbPath: string = "data/local-db") {
     await db.dropTable("icons");
   }
   await db.createTable("icons", mappedEmbeddings);
-  console.log("Vector database created with icons table.");
 }
 
 // Only run if this file is executed directly

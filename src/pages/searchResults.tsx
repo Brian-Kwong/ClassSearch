@@ -5,6 +5,7 @@ import { useSearchContext } from "../contextFactory";
 import { useEffect, useState } from "react";
 import { SearchParamJson } from "../components/types";
 import { Virtuoso } from "react-virtuoso";
+import { TeacherRatings } from "../components/types";
 
 // Add a type declaration for window.electron
 declare global {
@@ -15,6 +16,9 @@ declare global {
         url: string,
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
       getModelPath: () => Promise<string | null>;
+      getRMPInfo: (
+        school: string,
+      ) => Promise<{ data?: Map<string, TeacherRatings>; error?: string }>;
       semanticSearch: {
         performIconSearch: (query: {
           courses: { subject_descr: string }[];
@@ -32,6 +36,10 @@ const SearchResultsPage = () => {
   const { searchResults, searchOptions } = useSearchContext();
   const [modelLoaded, setModelLoaded] = useState(false);
   const [icons, setIcons] = useState<Array<{ lib: string; name: string }>>([]);
+  const [teacherRatingsList, setTeacherRatingsList] = useState<Map<
+    string,
+    TeacherRatings
+  > | null>(null);
 
   useEffect(() => {
     async function loadModel() {
@@ -44,6 +52,23 @@ const SearchResultsPage = () => {
     }
     loadModel();
   }, []);
+
+  useEffect(() => {
+    const professorRatings = async () => {
+      if (!university) return;
+      try {
+        const rmpInfo = await window.electronAPI.getRMPInfo(university);
+        if (rmpInfo) {
+          setTeacherRatingsList(rmpInfo.data ?? null);
+        } else {
+          console.error("Failed to fetch RMP Info:");
+        }
+      } catch (error) {
+        console.error("Error fetching RMP Info:", error);
+      }
+    
+    professorRatings();
+  }, [university]);
 
   useEffect(() => {
     const fetchIcons = async () => {
@@ -94,6 +119,13 @@ const SearchResultsPage = () => {
             key={index}
             course={course}
             iconName={icons.at(index) || { lib: "mdi", name: "book" }}
+            professorRating={
+              teacherRatingsList
+                ? teacherRatingsList.get(
+                    course.instructors.map((instr) => instr.name).join(", "),
+                  )
+                : undefined
+            }
           />
         )}
       />

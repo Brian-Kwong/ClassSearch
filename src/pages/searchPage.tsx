@@ -731,9 +731,30 @@ const SearchPage = () => {
                 />
               </GridItem>
             </Grid>
-            <Button onClick={() => setPerformSearch(true)} bg="brand.300">
-              Search
-            </Button>
+            <Grid
+              templateColumns={{
+                base: "1fr",
+                md: "repeat(2, 1fr)",
+              }}
+              gap={4}
+            >
+              <GridItem colSpan={1}>
+                {/* <Button onClick={() => setPerformSearch(true)} bg="brand.500" style={{ color: "white" }} _hover={{ bg: "brand.400" }} isDisabled={fetchingAvailableSubjectCourses || subject.length === 0 || subject[0] === ""} width="100%">
+              Previous Searches
+            </Button> */}
+              </GridItem>
+              <GridItem colSpan={1}>
+                <Button
+                  onClick={() => setPerformSearch(true)}
+                  bg="brand.300"
+                  style={{ color: "white" }}
+                  _hover={{ bg: "brand.400" }}
+                  width="100%"
+                >
+                  Search
+                </Button>
+              </GridItem>
+            </Grid>
           </div>
           <Toaster />
         </>

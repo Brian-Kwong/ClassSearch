@@ -14,6 +14,7 @@
     "src/components/types.ts",
     "src/preload.ts",
     "src/modelWorker.ts",
+    "src/rateMyProfessorQueryWorker.ts",
     "model.ts"
   ]
 }

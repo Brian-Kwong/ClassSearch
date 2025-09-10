@@ -21,12 +21,13 @@ export let persistentSession: Session | null = null;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-let worker: Worker;
 const userDataPath = app.getPath("userData");
 const dbPath = app.isPackaged
   ? path.join(process.resourcesPath, "data", "local-db")
   : path.join(__dirname, "data", "local-db");
+
+let iconWorker: Worker;
+let rmpWorker: Worker;
 
 // Ensure the data directory exists
 const createNewApp = () => {
@@ -175,6 +176,35 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
   }
 });
 
+ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {
+  try {
+    return new Promise((resolve, reject) => {
+      if (!rmpWorker || rmpWorker.threadId === -1) {
+        rmpWorker = new Worker(
+          path.join(__dirname, "src", "rateMyProfessorQueryWorker.js"),
+          {
+            workerData: { school: params.school },
+          },
+        );
+      }
+      rmpWorker.postMessage({ type: "query" });
+      rmpWorker.on("message", (message) => {
+        if (message.type === "result") {
+          resolve({ data: message.data });
+        }
+      });
+      rmpWorker.on("error", (err) => {
+        console.error("RMP Worker error:", err);
+        reject({ error: "RMP Worker encountered an error" });
+        rmpWorker.terminate();
+      });
+    });
+  } catch (error) {
+    console.error("Error fetching RMP info:", error);
+    return { error: "Failed to fetch RMP info" 
+  }
+});
+
 ipcMain.handle("loadModel", async () => {
   if (fs.existsSync(path.join(userDataPath, "model-cache")) === false) {
     fs.mkdirSync(path.join(userDataPath, "model-cache"));
@@ -186,23 +216,22 @@ ipcMain.handle("loadModel", async () => {
     );
   }
   return new Promise<void>((resolve, reject) => {
-    if (!worker || worker.threadId === -1) {
+    if (!iconWorker || iconWorker.threadId === -1) {
       // Check if the cache folder exists, if not create it
-      console.log("UserPath is:", userDataPath);
-      worker = new Worker(path.join(__dirname, "src", "modelWorker.js"), {
+      iconWorker = new Worker(path.join(__dirname, "src", "modelWorker.js"), {
         workerData: { userDataPath, dbPath, isPackaged: app.isPackaged },
       });
     }
-    worker.postMessage({ type: "loadModel" });
-    worker.on("message", (message) => {
+    iconWorker.postMessage({ type: "loadModel" });
+    iconWorker.on("message", (message) => {
       if (message.type === "modelLoaded") {
         resolve();
       }
     });
-    worker.on("error", (err) => {
+    iconWorker.on("error", (err) => {
       console.error("Worker error:", err);
       reject(err);
-      worker.terminate();
+      iconWorker.terminate();
     });
   });
 });
@@ -214,27 +243,27 @@ ipcMain.handle(
     params: { query: { courses: { subject_descr: string }[] } },
   ) => {
     return new Promise<{ lib: string; name: string }[]>((resolve, reject) => {
-      worker.postMessage({
+      iconWorker.postMessage({
         type: "semanticSearch",
         courses: params.query.courses,
       });
-      worker.on("message", (message) => {
+      iconWorker.on("message", (message) => {
         if (message.type === "semanticSearchResults") {
           resolve(message.results);
         }
       });
-      worker.on("error", (err) => {
+      iconWorker.on("error", (err) => {
         console.error("Worker error during semantic search:", err);
         reject(err);
-        worker.terminate();
+        iconWorker.terminate();
       });
     });
   },
 );
 
 app.on("window-all-closed", () => {
-  if (worker) {
-    worker.terminate();
+  if (iconWorker) {
+    iconWorker.terminate();
   }
   if (process.platform !== "darwin") {
     app.quit();

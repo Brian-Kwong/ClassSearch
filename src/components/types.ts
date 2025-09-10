@@ -153,3 +153,48 @@ export type iconModelDBEntry = {
   text: string;
   vector: number[];
 
+
+export type SchoolSearchResponse = {
+  data: {
+    newSearch: {
+      schools: {
+        edges: {
+          node: {
+            id: string;
+            name: string;
+            departments?: {
+              id: string;
+              name: string;
+            }[];
+          
+        }[];
+      
+    
+  
+
+
+export type TeacherSearchResponse = {
+  data: {
+    search: {
+      teachers: {
+        edges: {
+          cursor: string;
+          node: TeacherRatings;
+        }[];
+        pageInfo: {
+          hasNextPage: boolean;
+          endCursor: string | null;
+        
+      
+    
+  
+
+
+export type TeacherRatings = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  department: string;
+  avgRating: number;
+  numRatings: number;
+

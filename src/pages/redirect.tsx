@@ -3,10 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import { Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Error from "./error";
-import { redirectURL, SearchParamJson } from "../components/types";
+import {
+  redirectURL,
+  SearchParamJson,
+  TeacherRatings,
+} from "../components/types";
 import { PulseLoader } from "react-spinners";
 import { useSearchContext } from "../contextFactory";
-
 // Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {
   interface Window {
@@ -16,6 +19,9 @@ declare global {
         url: string,
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
       getModelPath: () => Promise<string | null>;
+      getRMPInfo: (
+        school: string,
+      ) => Promise<{ data?: Map<string, TeacherRatings>; error?: string }>;
       semanticSearch: {
         performIconSearch: (query: {
           courses: { subject_descr: string }[];
@@ -41,7 +47,7 @@ const Redirect = () => {
     if (!university) return;
     if (isCreatingLoginWindow.current) return;
     isCreatingLoginWindow.current = true;
-    const url = `${redirectURL[university as keyof typeof redirectURL]}EMPLOYEE/HRMS/s/WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula.IScript_ClassSearchOptions`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}`;
     window.electronAPI
       .firstLogin(url)
       .then((result: SearchParamJson | null) => {
