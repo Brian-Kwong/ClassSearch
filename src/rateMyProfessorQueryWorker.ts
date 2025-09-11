@@ -1,10 +1,13 @@
 import { parentPort, workerData } from "worker_threads";
 import {
   SchoolSearchResponse,
-  TeacherSearchResponse,
+  rateMyProfessorTeacherSearchResponse,
+  polyRatingProfessorTeacherSearchResponse,
+  TeacherRatings,
 } from "./components/types";
 
 const RATE_MY_PROFESSOR_API_URL = "https://www.ratemyprofessors.com/graphql";
+const POLY_RATING_API_URL = "https://api-dev.polyratings.org/professors.all";
 
 const fetchSchoolData = async (
   school: string,
@@ -118,8 +121,8 @@ const fetchProfessorData = async (
   });
   if (response.ok) {
     try {
-      const data: TeacherSearchResponse = await response.json();
-      const results: TeacherSearchResponse["data"]["search"]["teachers"]["edges"][number]["node"][] =
+      const data: rateMyProfessorTeacherSearchResponse = await response.json();
+      const results: rateMyProfessorTeacherSearchResponse["data"]["search"]["teachers"]["edges"][number]["node"][] =
         data.data.search.teachers.edges.map((edge) => edge.node);
       // If there is more continue fetching
       let pageInfo = data.data.search.teachers.pageInfo;
@@ -134,7 +137,7 @@ const fetchProfessorData = async (
           body: JSON.stringify({ query, variables }),
         });
         if (nextPageResponse.ok) {
-          const nextPageData: TeacherSearchResponse =
+          const nextPageData: rateMyProfessorTeacherSearchResponse =
             await nextPageResponse.json();
           results.push(
             ...nextPageData.data.search.teachers.edges.map((edge) => edge.node),
@@ -162,12 +165,47 @@ const fetchProfessorData = async (
   );
 
 
+const fetchPolyProfessorData = async () => {
+  // To DO
+  const professorResults = await fetch(POLY_RATING_API_URL);
+  if (professorResults.ok) {
+    try {
+      const data: polyRatingProfessorTeacherSearchResponse =
+        await professorResults.json();
+      // Converts to type of TeacherRatings
+      return data.result.data.map((prof) => ({
+        id: prof.id,
+        firstName: prof.firstName,
+        lastName: prof.lastName,
+        department: prof.department,
+        avgRating: prof.overallRating,
+        numRatings: prof.numEvals,
+      })) as TeacherRatings[];
+    } catch (error) {
+      console.error("Error parsing JSON response:", error);
+      throw new Error(
+        "Failed to parse professor response from PolyRatings.org",
+      );
+    }
+  }
+  throw new Error(
+    `Failed to fetch professor information. While fetching the following error was raised ${professorResults.statusText}`,
+  );
+
+
 if (parentPort) {
   parentPort.on("message", async (message) => {
     if (message.type === "query") {
       const school = workerData.school;
-      const schoolData = await fetchSchoolData(school);
-      const professors = await fetchProfessorData(schoolData.id);
+      const usePoly =
+        school === "California Polytechnic State University, San Luis Obispo";
+      const schoolData = usePoly ? null : await fetchSchoolData(school);
+      let professors: TeacherRatings[] = [];
+      if (usePoly) {
+        professors = await fetchPolyProfessorData();
+      } else if (schoolData && schoolData.id) {
+        professors = await fetchProfessorData(schoolData.id);
+      }
       const professorMap = new Map<string, (typeof professors)[number]>();
       professors
         .filter((professor) => professor.numRatings > 0)

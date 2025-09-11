@@ -173,7 +173,7 @@ export type SchoolSearchResponse = {
   
 
 
-export type TeacherSearchResponse = {
+export type rateMyProfessorTeacherSearchResponse = {
   data: {
     search: {
       teachers: {
@@ -187,6 +187,19 @@ export type TeacherSearchResponse = {
         
       
     
+  
+
+
+export type polyRatingProfessorTeacherSearchResponse = {
+  result: {
+    data: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      department: string;
+      numEvals: number;
+      overallRating: number;
+    }[];
   
 
 

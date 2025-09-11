@@ -3,31 +3,12 @@ import ClassInfoCard from "../components/ui/classInfoCard";
 import { Button, HStack, Stack, Text } from "@chakra-ui/react";
 import { useSearchContext } from "../contextFactory";
 import { useEffect, useState } from "react";
-import { SearchParamJson } from "../components/types";
 import { Virtuoso } from "react-virtuoso";
 import { TeacherRatings } from "../components/types";
-
-// Add a type declaration for window.electron
-declare global {
-  interface Window {
-    electronAPI: {
-      firstLogin: (url: string) => Promise<SearchParamJson | null>;
-      fetchCourses: (
-        url: string,
-      ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
-      getModelPath: () => Promise<string | null>;
-      getRMPInfo: (
-        school: string,
-      ) => Promise<{ data?: Map<string, TeacherRatings>; error?: string }>;
-      semanticSearch: {
-        performIconSearch: (query: {
-          courses: { subject_descr: string }[];
-        }) => Promise<{ lib: string; name: string }[]>;
-        setup: () => Promise<void>;
-      
-    
-  }
-}
+import {
+  getProfessorRatings,
+  findClosestTeacherRating,
+} from "../rateMyProfessorFetcher";
 
 const SearchResultsPage = () => {
   const navigate = useNavigate();
@@ -54,20 +35,11 @@ const SearchResultsPage = () => {
   }, []);
 
   useEffect(() => {
-    const professorRatings = async () => {
-      if (!university) return;
-      try {
-        const rmpInfo = await window.electronAPI.getRMPInfo(university);
-        if (rmpInfo) {
-          setTeacherRatingsList(rmpInfo.data ?? null);
-        } else {
-          console.error("Failed to fetch RMP Info:");
-        }
-      } catch (error) {
-        console.error("Error fetching RMP Info:", error);
+    getProfessorRatings(university || "").then((ratings) => {
+      if (ratings) {
+        setTeacherRatingsList(ratings);
       }
-    
-    professorRatings();
+    });
   }, [university]);
 
   useEffect(() => {
@@ -121,8 +93,9 @@ const SearchResultsPage = () => {
             iconName={icons.at(index) || { lib: "mdi", name: "book" }}
             professorRating={
               teacherRatingsList
-                ? teacherRatingsList.get(
-                    course.instructors.map((instr) => instr.name).join(", "),
+                ? findClosestTeacherRating(
+                    teacherRatingsList,
+                    course.meetings[0]?.instructor || "",
                   )
                 : undefined
             }

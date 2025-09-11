@@ -7,11 +7,15 @@ import SearchOptSelector from "../components/ui/searchOptSelector";
 import InputBox from "../components/ui/inputBox";
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import Worker from "../components/apiWorker.ts?worker";
+import Worker from "../components/courseProcessorWorker.ts?worker";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
 import { PulseLoader } from "react-spinners";
 import { useSearchContext } from "../contextFactory";
+import {
+  getProfessorRatings,
+  findClosestTeacherRating,
+} from "../rateMyProfessorFetcher";
 
 const dayOfTheWeekOptions = [
   { label: "Any Day", value: "any" },
@@ -108,6 +112,7 @@ const SearchPage = () => {
     useState<{ label: string; value: string }[]>([]);
   const [instructorLastName, setInstructorLastName] = useState<string[]>([]);
   const [instructorScore, setInstructorScore] = useState<string>("");
+  const [invalidInstructorScore, setInvalidInstructorScore] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string[]>([]);
   const [termType] = useState<"Semester" | "Quarter">("Quarter");
   const currentMonth = new Date().getMonth();
@@ -183,8 +188,25 @@ const SearchPage = () => {
         }
       }
       if (action === "IPC_RESPONSE") {
-        const { success, data } = event.data;
+        // eslint-disable-next-line prefer-const
+        let { success, data } = event.data;
         if (performSearch) {
+          if (instructorScore && instructorScore !== "") {
+            const score = parseFloat(instructorScore);
+            data = await getProfessorRatings(university || "").then(
+              (ratings) => {
+                if (ratings) {
+                  return data.filter((course: UniversityCourseResponse) => {
+                    const rating = findClosestTeacherRating(
+                      ratings,
+                      course.meetings[0]?.instructor || "",
+                    );
+                    return rating && rating.avgRating >= score;
+                  });
+                }
+              },
+            );
+          }
           navigateToResults(data);
         }
         if (success) {
@@ -480,6 +502,10 @@ const SearchPage = () => {
     );
   }, [dayOfTheWeekOptions]);
 
+  useEffect(() => {
+    setInstructorScore(searchQueryParams.instructorScore || "");
+  }, []);
+
   // useCallback handlers for all selectors
   const handleSubjectChange = React.useCallback((value: string[]) => {
     if (value.length == 0 || value[0] === "") {
@@ -540,11 +566,30 @@ const SearchPage = () => {
   );
   const handleInstructorScoreChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      toaster.create({
-        type: "warning",
-        title: "Instructor Score Feature not implemented yet",
-        description: "This feature will be added in future releases.",
-      });
+      if (e.target.value !== "" && isNaN(Number(e.target.value)) && !invalidInstructorScore) {
+        toaster.create({
+          type: "error",
+          title: "Instructor Score must be a number",
+        });
+        setInvalidInstructorScore(true);
+        return;
+      }
+      if (
+        e.target.value !== "" &&
+        (Number(e.target.value) < 1 || Number(e.target.value) > 5) &&
+        !invalidInstructorScore
+      ) {
+        toaster.create({
+          type: "error",
+          title: "Instructor Score must be between 1 and 5",
+        });
+        setInvalidInstructorScore(true);
+        return;
+      }
+      if (invalidInstructorScore){
+        return;
+      }
+      setInvalidInstructorScore(false);
       setInstructorScore(e.target.value);
     },
     [],

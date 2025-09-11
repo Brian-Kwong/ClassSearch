@@ -1,7 +1,11 @@
-import { UniversityCourseResponse, UserSearchRequestTypes } from "./types";
+import {
+  UniversityCourseResponse,
+  UserSearchRequestTypes,
+  TeacherRatings,
+} from "./types";
 import { parseFullName } from "parse-full-name";
 import { openDB, DBSchema } from "idb";
-interface CourseDB extends DBSchema {
+export interface CourseDB extends DBSchema {
   coursesSearches: {
     key: string;
     value: {
@@ -18,14 +22,23 @@ interface CourseDB extends DBSchema {
       params: UserSearchRequestTypes;
     
   
+  teacherRatings: {
+    key: string;
+    value: {
+      school: string;
+      timestamp: number;
+      ratings: Record<string, TeacherRatings>;
+    
+  
 }
 
 const cacheTTL = 1000 * 60 * 120; // 120 minutes Cache TTL
 
-const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
+export const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
   upgrade(db) {
     db.createObjectStore("coursesSearches", { keyPath: "url" });
     db.createObjectStore("searchHistory", { keyPath: "timestamp" });
+    db.createObjectStore("teacherRatings", { keyPath: "school" });
   },
 });
 
