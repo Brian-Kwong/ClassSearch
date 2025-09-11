@@ -566,7 +566,11 @@ const SearchPage = () => {
   );
   const handleInstructorScoreChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.value !== "" && isNaN(Number(e.target.value)) && !invalidInstructorScore) {
+      if (
+        e.target.value !== "" &&
+        isNaN(Number(e.target.value)) &&
+        !invalidInstructorScore
+      ) {
         toaster.create({
           type: "error",
           title: "Instructor Score must be a number",
@@ -586,7 +590,7 @@ const SearchPage = () => {
         setInvalidInstructorScore(true);
         return;
       }
-      if (invalidInstructorScore){
+      if (invalidInstructorScore) {
         return;
       }
       setInvalidInstructorScore(false);
