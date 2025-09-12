@@ -1,5 +1,4 @@
 import { Portal, Select, createListCollection } from "@chakra-ui/react";
-import styles from "../../css-styles/inputBox.module.css";
 
 type SortBySelectorProps = {
   sortBy: string;
