@@ -1,4 +1,4 @@
-import "./App.css";
+import "../src/css-styles/App.css";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import React from "react";
 import { PulseLoader } from "react-spinners";

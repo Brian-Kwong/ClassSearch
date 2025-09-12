@@ -22,6 +22,8 @@ export interface SearchDataContextType {
       availableInstructorLastNames: { label: string; value: string }[];
     },
   ) => void;
+  sortBy: string;
+  setSortBy: (sortBy: string) => void;
 }
 
 export const searchDataContext = createContext<

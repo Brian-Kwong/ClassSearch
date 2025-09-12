@@ -103,9 +103,13 @@ const filterData = (
         searchParams.courseCatalogNum.includes(course.catalog_nbr)) &&
       (searchParams.courseAttributes.length === 0 ||
         searchParams.courseAttributes[0] === "" ||
-        course.crse_attr
+        course.crse_attr_value
           .split(",")
-          .some((attr) => searchParams.courseAttributes.includes(attr))) &&
+          .some((attr) =>
+            searchParams.courseAttributes.some((term) =>
+              term.split(" ").every((searchAttr) => attr.includes(searchAttr)),
+            ),
+          )) &&
       (searchParams.dayOfTheWeek.length === 0 ||
         searchParams.dayOfTheWeek[0] === "" ||
         course.meetings.some((meeting) => {

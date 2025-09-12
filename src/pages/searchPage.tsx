@@ -10,12 +10,13 @@ import { useSearchParams } from "react-router-dom";
 import Worker from "../components/courseProcessorWorker.ts?worker";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
-import { PulseLoader } from "react-spinners";
 import { useSearchContext } from "../contextFactory";
 import {
   getProfessorRatings,
   findClosestTeacherRating,
 } from "../rateMyProfessorFetcher";
+import Loading from "../components/ui/loading";
+import styles from "../css-styles/searchPage.module.css";
 
 const dayOfTheWeekOptions = [
   { label: "Any Day", value: "any" },
@@ -261,7 +262,7 @@ const SearchPage = () => {
       instructorScore: instructorScore,
       searchTerm: searchTerm,
     
-    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${encodeURIComponent(searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0] : "")}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
     if (isWorkerReady && dataWorkerRef.current) {
       dataWorkerRef.current.postMessage({
         action: "fetchCourses",
@@ -611,23 +612,10 @@ const SearchPage = () => {
   return (
     <>
       {performSearch ? (
-        <div>
-          <PulseLoader color="#637d91" />
-          <Text fontSize="2xl" fontWeight="bold" textAlign="center" mt="20px">
-            Searching...
-          </Text>
-        </div>
+        <Loading message="Searching for courses..." />
       ) : (
         <>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              padding: "20px",
-              gap: "20px",
-              maxWidth: "50vw",
-            }}
-          >
+          <div className={styles.searchFiltersContainer}>
             <Text fontSize="4xl" fontWeight="bold">
               Course Search
             </Text>
@@ -795,9 +783,7 @@ const SearchPage = () => {
               <GridItem colSpan={1}>
                 <Button
                   onClick={() => setPerformSearch(true)}
-                  bg="brand.300"
-                  style={{ color: "white" }}
-                  _hover={{ bg: "brand.400" }}
+                  className={styles.button}
                   width="100%"
                 >
                   Search

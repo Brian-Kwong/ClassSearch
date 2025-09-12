@@ -1,5 +1,6 @@
 import { Input, Field, Spinner } from "@chakra-ui/react";
 import React from "react";
+import styles from "../../css-styles/inputBox.module.css";
 
 type InputBoxProps = {
   label: string;
@@ -12,24 +13,9 @@ const InputBox = ({ label, value, onChange, loadingData }: InputBoxProps) => {
   return (
     <Field.Root
       width={{ base: "50vw", md: "15vw" }}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: "100%",
-      }}
+      className={styles.inputBox}
     >
-      <Field.Label
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignContent: "center",
-          justifyContent: "center",
-          width: "100%",
-          gap: "8px",
-        }}
-      >
+      <Field.Label className={styles.inputBoxLabel}>
         {label}
         {loadingData && <Spinner size="sm" />}
       </Field.Label>
@@ -37,6 +23,7 @@ const InputBox = ({ label, value, onChange, loadingData }: InputBoxProps) => {
         placeholder={`Enter the ${label}`}
         value={value}
         onChange={onChange}
+        className={styles.inputBoxInput}
       />
     </Field.Root>
   );

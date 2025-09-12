@@ -1,0 +1,44 @@
+.inputBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100% !important;
+}
+
+.inputBoxLabel {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.inputBoxInput {
+  padding-right: 60px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  border-color: var(--chakra-colors-brand-500);
+}
+
+.inputBoxInput:active,
+.inputBoxInput:focus,
+.inputBoxInput:hover {
+  border-color: var(--chakra-colors-brand-600);
+  box-shadow: 0 0 0 1px var(--chakra-colors-brand-600);
+}
+
+.tagsDiv {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tagLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

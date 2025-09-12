@@ -49,6 +49,12 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
         },
   );
 
+  const [sortBy, setSortBy] = useState<string>(
+    window.sessionStorage.getItem("sortBy")
+      ? JSON.parse(window.sessionStorage.getItem("sortBy")!)
+      : "courseNumber",
+  );
+
   useEffect(() => {
     window.sessionStorage.setItem(
       "searchOptions",
@@ -70,6 +76,10 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
     );
   }, [searchQueryParams]);
 
+  useEffect(() => {
+    window.sessionStorage.setItem("sortBy", JSON.stringify(sortBy));
+  }, [sortBy]);
+
   return (
     <searchDataContext.Provider
       value={{
@@ -87,6 +97,8 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
             availableInstructorLastNames: { label: string; value: string }[];
           },
         ) => setSearchQueryParams(params),
+        sortBy,
+        setSortBy: (sortBy: string) => setSortBy(sortBy),
       }}
     >
       {children}

@@ -2,7 +2,7 @@ import { Group, Text, Button } from "@chakra-ui/react";
 import CSUSelector from "../components/ui/csuSelector";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../App.css";
+import "../css-styles/App.css";
 
 const SelectCSU = () => {
   const [selectedUniversity, setSelectedUniversity] = useState<string>("");

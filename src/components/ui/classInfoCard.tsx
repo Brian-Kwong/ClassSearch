@@ -3,6 +3,7 @@ import { UniversityCourseResponse } from "../types";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { LuBuilding2 } from "react-icons/lu";
 import { useTheme } from "next-themes";
+import { Box } from "@chakra-ui/react";
 import { Component } from "lucide-react";
 import { IoIosCube } from "react-icons/io";
 import { RiListCheck } from "react-icons/ri";
@@ -65,9 +66,14 @@ const ClassInfoCard = ({
             <Stack
               alignItems={"center"}
               gap={1}
-              width={{ base: "100%", md: "10%" }}
+              width={{ base: "100%", md: "8%" }}
             >
-              <Iconify icon={`${iconName.lib}:${iconName.name}`} width="60%" />
+              <Box width={{ base: 12, md: 16 }} height={{ base: 12, md: 16 }}>
+                <Iconify
+                  icon={`${iconName.lib}:${iconName.name}`}
+                  width="100%"
+                />
+              </Box>
               <Text
                 textStyle="body"
                 color={isDarkMode ? "white" : "black"}

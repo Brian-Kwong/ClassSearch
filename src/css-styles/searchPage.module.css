@@ -1,0 +1,39 @@
+.button {
+  background-color: var(--chakra-colors-brand-500);
+  color: var(--chakra-colors-primary-light);
+  border-radius: 4px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: var(--chakra-colors-brand-600);
+  transform: scale(1.1);
+}
+
+.searchFiltersContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px !important;
+  gap: 20px;
+  border-radius: 4px;
+  max-width: 50vw;
+  background-color: color-mix(
+    in srgb,
+    var(--chakra-colors-primary-dark) 90%,
+    white 10%
+  );
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+@media (prefers-color-scheme: light) {
+  .searchFiltersContainer {
+    background-color: color-mix(
+      in srgb,
+      var(--chakra-colors-primary-light) 90%,
+      black 10%
+    );
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}

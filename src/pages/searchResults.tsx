@@ -1,6 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import ClassInfoCard from "../components/ui/classInfoCard";
-import { Button, HStack, Stack, Text } from "@chakra-ui/react";
+import { Button, HStack, Stack, Text, Group } from "@chakra-ui/react";
 import { useSearchContext } from "../contextFactory";
 import { useEffect, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
@@ -9,12 +8,17 @@ import {
   getProfessorRatings,
   findClosestTeacherRating,
 } from "../rateMyProfessorFetcher";
+import ClassInfoCard from "../components/ui/classInfoCard";
+import SortBySelector from "../components/ui/sortBySelector";
+import sortCoursesBy from "../sortBy";
+import styles from "../css-styles/searchResults.module.css";
 
 const SearchResultsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
-  const { searchResults, searchOptions } = useSearchContext();
+  const { searchResults, setSearchResults, searchOptions, sortBy, setSortBy } =
+    useSearchContext();
   const [modelLoaded, setModelLoaded] = useState(false);
   const [icons, setIcons] = useState<Array<{ lib: string; name: string }>>([]);
   const [teacherRatingsList, setTeacherRatingsList] = useState<Map<
@@ -64,28 +68,60 @@ const SearchResultsPage = () => {
     fetchIcons();
   }, [modelLoaded, searchResults]);
 
+  useEffect(() => {
+    if (sortBy && searchResults) {
+      const sorted = sortCoursesBy(
+        searchResults,
+        teacherRatingsList || new Map(),
+        sortBy,
+      );
+      if (JSON.stringify(sorted) !== JSON.stringify(searchResults)) {
+        setSearchResults(sorted);
+      }
+    }
+    // Unnecessary renders if all dependencies are included
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortBy]);
+
   return (
     <Stack>
-      <HStack justifyContent={"space-between"} padding={2} flexWrap={"wrap"}>
+      <HStack
+        gap={{
+          base: 5,
+        }}
+        justifyContent={"space-between"}
+        flexWrap={"wrap"}
+      >
         {searchResults ? (
-          <Text textStyle="heading">
-            Search Results ({searchResults.length} results)
-          </Text>
+          <Stack alignItems={"flex-start"} gap={0}>
+            <Text fontSize="2xl" fontWeight="bold">
+              Search Results
+            </Text>
+            <Text fontSize="md" color="gray.500">
+              {searchResults.length} results found
+            </Text>
+          </Stack>
         ) : null}
-        <Button
-          colorPalette="brand"
-          onClick={() => {
-            navigate(`/search?university=${university}&latestHistory=${true}`, {
-              state: { searchOptions },
-            });
-          }}
-        >
-          Revise Search Parameters
-        </Button>
+        <Group>
+          <SortBySelector sortBy={sortBy} setSortBy={setSortBy} />
+          <Button
+            colorPalette="brand"
+            onClick={() => {
+              navigate(
+                `/search?university=${university}&latestHistory=${true}`,
+                {
+                  state: { searchOptions },
+                },
+              );
+            }}
+          >
+            Revise Search Parameters
+          </Button>
+        </Group>
       </HStack>
       <Virtuoso
         data={searchResults}
-        style={{ height: "80vh", scrollbarWidth: "none" }}
+        className={styles.searchResultsList}
         itemContent={(index, course) => (
           <ClassInfoCard
             key={index}

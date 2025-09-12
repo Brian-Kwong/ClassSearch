@@ -11,6 +11,7 @@ import { FaRegCheckCircle } from "react-icons/fa";
 import { MdErrorOutline } from "react-icons/md";
 import { LuMessageCircleWarning } from "react-icons/lu";
 import { toaster } from "./toastFactory";
+import styles from "../../css-styles/toaster.module.css";
 
 export const Toaster = () => {
   return (
@@ -55,29 +56,17 @@ export const Toaster = () => {
                 {toast.type === "success" && (
                   <FaRegCheckCircle
                     color="green"
-                    style={{
-                      width: "2.5em",
-                      height: "2.5em",
-                    }}
+                    className={styles.toastIcon}
                   />
                 )}
                 {toast.type === "warning" && (
                   <LuMessageCircleWarning
                     color="orange"
-                    style={{
-                      width: "2.5em",
-                      height: "2.5em",
-                    }}
+                    className={styles.toastIcon}
                   />
                 )}
                 {toast.type === "error" && (
-                  <MdErrorOutline
-                    color="red"
-                    style={{
-                      width: "2.5em",
-                      height: "2.5em",
-                    }}
-                  />
+                  <MdErrorOutline color="red" className={styles.toastIcon} />
                 )}
                 <Stack gap="3" direction="column">
                   {toast.title && (

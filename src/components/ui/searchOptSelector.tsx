@@ -7,6 +7,7 @@ import {
 } from "@chakra-ui/react";
 import { useCallback } from "react";
 import React from "react";
+import styles from "../../css-styles/inputBox.module.css";
 
 type SearchOptSelectorProps = {
   selectedValue: string[];
@@ -54,37 +55,16 @@ const SearchOptSelector = ({
       onValueChange={handleValueChange}
       value={selectedValue}
       onInputValueChange={handleInputValueChange}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: "100%",
-      }}
+      className={styles.inputBox}
     >
       <Combobox.Label>{label}</Combobox.Label>
 
       {multiple && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: "4px",
-          }}
-        >
+        <div className={styles.tagsDiv}>
           {selectedValue.map((val) => {
             return (
               <Tag.Root key={val}>
-                <Tag.Label
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {val}
-                </Tag.Label>
+                <Tag.Label className={styles.tagLabel}>{val}</Tag.Label>
                 <Tag.EndElement>
                   <Tag.CloseTrigger
                     onClick={() =>
@@ -100,12 +80,7 @@ const SearchOptSelector = ({
       <Combobox.Control>
         <Combobox.Input
           placeholder="Type to search..."
-          style={{
-            paddingRight: "60px",
-            textOverflow: "ellipsis",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-          }}
+          className={styles.inputBoxInput}
         />
         <Combobox.IndicatorGroup>
           <Combobox.ClearTrigger onClick={() => setSelectedValue([""])} />

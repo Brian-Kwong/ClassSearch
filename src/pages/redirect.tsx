@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Error from "./error";
 import {
@@ -10,6 +9,7 @@ import {
 } from "../components/types";
 import { PulseLoader } from "react-spinners";
 import { useSearchContext } from "../contextFactory";
+import Loading from "../components/ui/loading";
 // Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {
   interface Window {
@@ -67,17 +67,7 @@ const Redirect = () => {
   return (
     <>
       {loading ? (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "100px",
-          }}
-        >
-          <PulseLoader color="#637d91" />
-          <Text>Redirecting to {university}...</Text>
-        </div>
+        <Loading message={`Redirecting to ${university}...`} />
       ) : universityInfo ? (
         <PulseLoader color="#637d91" />
       ) : (

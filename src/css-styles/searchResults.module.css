@@ -1,0 +1,5 @@
+.searchResultsList {
+  height: 80vh !important;
+  scrollbar-width: none;
+  min-width: 70vw;
+}
