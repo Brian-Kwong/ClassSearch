@@ -1,46 +1,10 @@
 import {
   UniversityCourseResponse,
   UserSearchRequestTypes,
-  TeacherRatings,
-} from "./types";
+} from "../components/types";
+import { createAndOpenDB } from "../components/dbFactory";
 import { parseFullName } from "parse-full-name";
-import { openDB, DBSchema } from "idb";
-export interface CourseDB extends DBSchema {
-  coursesSearches: {
-    key: string;
-    value: {
-      url: string;
-      timestamp: number;
-      data: UniversityCourseResponse[];
-      params: UserSearchRequestTypes;
-    
-  
-  searchHistory: {
-    key: number;
-    value: {
-      timestamp: number;
-      params: UserSearchRequestTypes;
-    
-  
-  teacherRatings: {
-    key: string;
-    value: {
-      school: string;
-      timestamp: number;
-      ratings: Record<string, TeacherRatings>;
-    
-  
-}
-
 const cacheTTL = 1000 * 60 * 120; // 120 minutes Cache TTL
-
-export const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
-  upgrade(db) {
-    db.createObjectStore("coursesSearches", { keyPath: "url" });
-    db.createObjectStore("searchHistory", { keyPath: "timestamp" });
-    db.createObjectStore("teacherRatings", { keyPath: "school" });
-  },
-});
 
 self.postMessage({ status: "ready" });
 
@@ -216,8 +180,7 @@ const isSubsetOfParams = (
 
 
 self.onmessage = async (event) => {
-  const { action, url, data, params, university, forSearch, latestOnly } =
-    event.data;
+  const { action, url, data, params, university, forSearch } = event.data;
   if (action === "fetchCourses") {
     const db = await createAndOpenDB;
     const cached = await db.get(
@@ -275,25 +238,5 @@ self.onmessage = async (event) => {
           ? filterData(processedData, params)
           : processData(processedData),
     });
-  } else if (action === "getSearchHistory") {
-    const db = await createAndOpenDB;
-    if (latestOnly) {
-      // Get the latest search result
-      const searchHistory = (await db.getAll("searchHistory")).sort(
-        (a, b) => b.timestamp - a.timestamp,
-      )[0];
-      self.postMessage({
-        action: "HISTORY_RESPONSE",
-        success: true,
-        data: searchHistory,
-      });
-    } else {
-      const searchHistory = await db.getAll("searchHistory");
-      self.postMessage({
-        action: "HISTORY_RESPONSE",
-        success: true,
-        data: searchHistory,
-      });
-    }
   }
 

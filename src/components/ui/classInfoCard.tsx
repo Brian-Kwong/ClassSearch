@@ -1,17 +1,14 @@
 import { Card, HStack, Stack, Icon, Text } from "@chakra-ui/react";
-import { UniversityCourseResponse } from "../types";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { LuBuilding2 } from "react-icons/lu";
 import { useTheme } from "next-themes";
+import { LuBuilding2 } from "react-icons/lu";
 import { Box } from "@chakra-ui/react";
 import { Component } from "lucide-react";
 import { IoIosCube } from "react-icons/io";
 import { RiListCheck } from "react-icons/ri";
-import { FaRegClock } from "react-icons/fa";
-import DaysOfTheWeek from "../../assets/daysOfWeek.svg?react";
-import { FaCalendarDay } from "react-icons/fa";
+import { FaRegClock, FaCalendarDay, FaChalkboardTeacher } from "react-icons/fa";
 import { Icon as Iconify } from "@iconify/react";
-import { TeacherRatings } from "../types";
+import { TeacherRatings, UniversityCourseResponse } from "../types";
+import DaysOfTheWeek from "../../assets/daysOfWeek.svg?react";
 
 function formatTime(timeString: string): string | undefined {
   try {

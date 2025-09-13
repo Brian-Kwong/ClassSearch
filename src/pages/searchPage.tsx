@@ -3,11 +3,7 @@ import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { redirectURL, UniversityCourseResponse } from "../components/types";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import SearchOptSelector from "../components/ui/searchOptSelector";
-import InputBox from "../components/ui/inputBox";
-import React from "react";
 import { useSearchParams } from "react-router-dom";
-import Worker from "../components/courseProcessorWorker.ts?worker";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
 import { useSearchContext } from "../contextFactory";
@@ -17,6 +13,10 @@ import {
 } from "../rateMyProfessorFetcher";
 import Loading from "../components/ui/loading";
 import styles from "../css-styles/searchPage.module.css";
+import SearchOptSelector from "../components/ui/searchComboBox";
+import InputBox from "../components/ui/inputBox";
+import Worker from "../workers/courseProcessorWorker?worker";
+import React from "react";
 
 const dayOfTheWeekOptions = [
   { label: "Any Day", value: "any" },
@@ -82,7 +82,6 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
-  const latestHistory = false;
   const {
     searchOptions,
     setSearchResults,
@@ -162,32 +161,6 @@ const SearchPage = () => {
           university: university,
         }); // send the data to the worker for processing
       }
-      if (action === "HISTORY_RESPONSE" && latestHistory) {
-        const { success, data } = event.data;
-        if (success) {
-          setSubject(data.params.subject || []);
-          setCourseAttributes(data.params.courseAttributes || []);
-          setDayOfTheWeek(data.params.dayOfTheWeek || []);
-          setNumberOfUnits(data.params.numberOfUnits || []);
-          setStartTime(data.params.startTime || []);
-          setEndTime(data.params.endTime || []);
-          setInstructMode(data.params.instructMode || []);
-          setInstructorScore(data.params.instructorScore || "");
-          setTimeout(() => {
-            // Any dynamically loaded data should wait for the fetch
-            setCourseCatalogNum(data.params.courseCatalogNum || []);
-            setInstructorFirstName(data.params.instructorFirstName || []);
-            setInstructorLastName(data.params.instructorLastName || []);
-          }, 2000);
-          if (
-            data.params.searchTerm &&
-            data.params.searchTerm.length > 0 &&
-            data.params.searchTerm[0] != searchTerm[0]
-          ) {
-            setSearchTerm(data.params.searchTerm);
-          }
-        }
-      }
       if (action === "IPC_RESPONSE") {
         // eslint-disable-next-line prefer-const
         let { success, data } = event.data;
@@ -225,7 +198,7 @@ const SearchPage = () => {
         dataWorkerRef.current.terminate();
       }
     
-  }, [latestHistory, navigateToResults, performSearch, searchTerm]);
+  }, [navigateToResults, performSearch, searchTerm]);
 
   const submitSearch = useCallback(() => {
     if (searchTerm.length < 1 || searchTerm[0] === "") {
@@ -526,6 +499,7 @@ const SearchPage = () => {
     (value: string[]) => setCourseAttributes(value),
     [],
   );
+
   const handleDayOfTheWeekChange = React.useCallback((value: string[]) => {
     if (value.includes("any")) {
       setDayOfTheWeek(["any"]);
@@ -599,15 +573,6 @@ const SearchPage = () => {
     },
     [],
   );
-
-  useEffect(() => {
-    if (latestHistory && isWorkerReady && dataWorkerRef.current) {
-      dataWorkerRef.current.postMessage({
-        action: "getSearchHistory",
-        latestOnly: true,
-      });
-    }
-  }, [latestHistory, isWorkerReady]);
 
   return (
     <>

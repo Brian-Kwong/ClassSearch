@@ -1,4 +1,4 @@
-import { createAndOpenDB } from "./components/courseProcessorWorker";
+import { createAndOpenDB } from "./components/dbFactory";
 import { TeacherRatings } from "./components/types";
 export const getProfessorRatings = async (university: string) => {
   if (!university) return;
