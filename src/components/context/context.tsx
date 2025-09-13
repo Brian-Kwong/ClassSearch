@@ -3,7 +3,7 @@ import {
   SearchParamJson,
   UniversityCourseResponse,
   UserSearchRequestTypes,
-} from "./components/types";
+} from "../types";
 import { searchDataContext } from "./contextFactory";
 
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {

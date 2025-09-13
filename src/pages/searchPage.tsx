@@ -6,11 +6,11 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
-import { useSearchContext } from "../contextFactory";
+import { useSearchContext } from "../components/context/contextFactory";
 import {
   getProfessorRatings,
   findClosestTeacherRating,
-} from "../rateMyProfessorFetcher";
+} from "../components/rateMyProfessorFetcher";
 import Loading from "../components/ui/loading";
 import styles from "../css-styles/searchPage.module.css";
 import SearchOptSelector from "../components/ui/searchComboBox";

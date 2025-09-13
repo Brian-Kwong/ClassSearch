@@ -13,8 +13,8 @@
     "electron.ts",
     "src/components/types.ts",
     "src/preload.ts",
-    "src/modelWorker.ts",
-    "src/rateMyProfessorQueryWorker.ts",
+    "src/workers/modelWorker.ts",
+    "src/workers/rateMyProfessorQueryWorker.ts",
     "model.ts"
   ]
 }

@@ -1,4 +1,4 @@
-import { UniversityCourseResponse, TeacherRatings } from "./components/types";
+import { UniversityCourseResponse, TeacherRatings } from "./types";
 import { findClosestTeacherRating } from "./rateMyProfessorFetcher";
 
 /* The following sort options are available     

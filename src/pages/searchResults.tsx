@@ -1,16 +1,16 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, HStack, Stack, Text, Group } from "@chakra-ui/react";
-import { useSearchContext } from "../contextFactory";
+import { useSearchContext } from "../components/context/contextFactory";
 import { useEffect, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { TeacherRatings } from "../components/types";
 import {
   getProfessorRatings,
   findClosestTeacherRating,
-} from "../rateMyProfessorFetcher";
+} from "../components/rateMyProfessorFetcher";
 import ClassInfoCard from "../components/ui/classInfoCard";
 import SortBySelector from "../components/ui/sortBySelector";
-import sortCoursesBy from "../sortBy";
+import sortCoursesBy from "../components/sortBy";
 import styles from "../css-styles/searchResults.module.css";
 
 const SearchResultsPage = () => {

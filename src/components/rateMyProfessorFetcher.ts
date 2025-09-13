@@ -1,5 +1,5 @@
-import { createAndOpenDB } from "./components/dbFactory";
-import { TeacherRatings } from "./components/types";
+import { createAndOpenDB } from "./dbFactory";
+import { TeacherRatings } from "./types";
 export const getProfessorRatings = async (university: string) => {
   if (!university) return;
   try {

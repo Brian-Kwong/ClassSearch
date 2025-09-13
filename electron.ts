@@ -181,7 +181,12 @@ ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {
     return new Promise((resolve, reject) => {
       if (!rmpWorker || rmpWorker.threadId === -1) {
         rmpWorker = new Worker(
-          path.join(__dirname, "src", "rateMyProfessorQueryWorker.js"),
+          path.join(
+            __dirname,
+            "src",
+            "workers",
+            "rateMyProfessorQueryWorker.js",
+          ),
           {
             workerData: { school: params.school },
           },
@@ -218,9 +223,12 @@ ipcMain.handle("loadModel", async () => {
   return new Promise<void>((resolve, reject) => {
     if (!iconWorker || iconWorker.threadId === -1) {
       // Check if the cache folder exists, if not create it
-      iconWorker = new Worker(path.join(__dirname, "src", "modelWorker.js"), {
-        workerData: { userDataPath, dbPath, isPackaged: app.isPackaged },
-      });
+      iconWorker = new Worker(
+        path.join(__dirname, "src", "workers", "modelWorker.js"),
+        {
+          workerData: { userDataPath, dbPath, isPackaged: app.isPackaged },
+        },
+      );
     }
     iconWorker.postMessage({ type: "loadModel" });
     iconWorker.on("message", (message) => {

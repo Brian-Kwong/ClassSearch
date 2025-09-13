@@ -8,7 +8,7 @@ import {
   TeacherRatings,
 } from "../components/types";
 import { PulseLoader } from "react-spinners";
-import { useSearchContext } from "../contextFactory";
+import { useSearchContext } from "../components/context/contextFactory";
 import Loading from "../components/ui/loading";
 // Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {

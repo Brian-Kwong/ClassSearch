@@ -2,8 +2,8 @@ import { parentPort, workerData } from "worker_threads";
 import { FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
 import path from "path";
-import { iconModelDBEntry } from "./components/types";
-import createVectorDB from "../model.js";
+import { iconModelDBEntry } from "../components/types.js";
+import createVectorDB from "../../model.js";
 
 let searchPipeline: FeatureExtractionPipeline | null = null;
 let lookupTable: lancedb.Table | null = null;

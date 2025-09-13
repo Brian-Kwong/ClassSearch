@@ -4,7 +4,7 @@ import {
   rateMyProfessorTeacherSearchResponse,
   polyRatingProfessorTeacherSearchResponse,
   TeacherRatings,
-} from "./components/types";
+} from "../components/types";
 
 const RATE_MY_PROFESSOR_API_URL = "https://www.ratemyprofessors.com/graphql";
 const POLY_RATING_API_URL = "https://api-dev.polyratings.org/professors.all";

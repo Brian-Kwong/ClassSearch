@@ -3,7 +3,7 @@ import {
   SearchParamJson,
   UniversityCourseResponse,
   UserSearchRequestTypes,
-} from "./components/types";
+} from "../types";
 
 export interface SearchDataContextType {
   searchOptions: SearchParamJson;
