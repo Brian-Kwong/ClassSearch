@@ -51,7 +51,6 @@ const SearchOptSelector = ({
       multiple={multiple}
       collection={optionsList}
       size="md"
-      width={{ base: "50vw", md: "15vw" }}
       onValueChange={handleValueChange}
       value={selectedValue}
       onInputValueChange={handleInputValueChange}
@@ -91,8 +90,8 @@ const SearchOptSelector = ({
         <Combobox.Positioner>
           <Combobox.Content maxHeight="200px" overflowY="auto">
             <Combobox.Empty>No option found</Combobox.Empty>
-            {optionsList.items.map((option) => (
-              <Combobox.Item item={option} key={option.value}>
+            {optionsList.items.map((option, index) => (
+              <Combobox.Item item={option} key={index}>
                 {option.label}
                 <Combobox.ItemIndicator />
               </Combobox.Item>

@@ -11,10 +11,7 @@ type InputBoxProps = {
 
 const InputBox = ({ label, value, onChange, loadingData }: InputBoxProps) => {
   return (
-    <Field.Root
-      width={{ base: "50vw", md: "15vw" }}
-      className={styles.inputBox}
-    >
+    <Field.Root className={styles.inputBox}>
       <Field.Label className={styles.inputBoxLabel}>
         {label}
         {loadingData && <Spinner size="sm" />}

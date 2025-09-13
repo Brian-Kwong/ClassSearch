@@ -19,6 +19,7 @@ import Loading from "../components/ui/loading";
 import styles from "../css-styles/searchPage.module.css";
 import SearchOptSelector from "../components/ui/searchComboBox";
 import InputBox from "../components/ui/inputBox";
+import HistoryDrawer from "../components/ui/searchHistoryDrawer";
 import CourseFetchWorker from "../workers/courseProcessorWorker?worker";
 import SearchHistoryWorker from "../workers/searchHistoryWorker?worker";
 import React from "react";
@@ -89,7 +90,7 @@ const SearchPage = () => {
   const university = searchParams.get("university");
 
   const [termType] = useState<"Semester" | "Quarter">(
-    university === "California State University San Luis Obispo"
+    university === "California Polytechnic State University, San Luis Obispo"
       ? "Quarter"
       : "Semester",
   );
@@ -142,6 +143,10 @@ const SearchPage = () => {
       params: UserSearchRequestTypes;
     }[]
   >([]);
+
+  const [selectedSearchHistoryIndex, setSelectedSearchHistoryIndex] = useState<
+    number | null
+  >(null);
 
   // Navigate to results page with data
   const navigateToResults = useCallback(
@@ -300,6 +305,11 @@ const SearchPage = () => {
         params: searchParams,
         forSearch: performSearch,
       });
+      searchHistoryWorkerRef.current?.postMessage({
+        action: "saveSearch",
+        params: searchParams,
+      });
+      setPerformSearch(false);
       setFetchingAvailableSubjectCourses(true);
     }
   }, [
@@ -368,6 +378,27 @@ const SearchPage = () => {
       submitSearch();
     }
   }, [performSearch, submitSearch]);
+
+  useEffect(() => {
+    if (selectedSearchHistoryIndex !== null) {
+      const historyParams =
+        searchHistoryList.find(
+          (item) => item.timestamp === selectedSearchHistoryIndex,
+        )?.params || searchQueryParams;
+      setSearchQueryParams({
+        ...historyParams,
+        availableCourseNumbers,
+        availableInstructorFirstNames,
+        availableInstructorLastNames,
+      });
+    }
+  }, [selectedSearchHistoryIndex]);
+
+  useEffect(() => {
+    if (selectedSearchHistoryIndex !== null) {
+      window.location.reload();
+    }
+  }, [searchQueryParams]);
 
   const availableTimes = useMemo(
     () => [
@@ -797,9 +828,23 @@ const SearchPage = () => {
               gap={4}
             >
               <GridItem colSpan={1}>
-                {/* <Button onClick={() => setPerformSearch(true)} bg="brand.500" style={{ color: "white" }} _hover={{ bg: "brand.400" }} isDisabled={fetchingAvailableSubjectCourses || subject.length === 0 || subject[0] === ""} width="100%">
-              Previous Searches
-            </Button> */}
+                <HistoryDrawer
+                  openButton={
+                    <Button
+                      onClick={() =>
+                        searchHistoryWorkerRef.current?.postMessage({
+                          action: "getSearchHistory",
+                        })
+                      }
+                      className={styles.button}
+                      width="100%"
+                    >
+                      Previous Searches
+                    </Button>
+                  }
+                  searchHistory={searchHistoryList}
+                  setSelectedSearchHistoryIndex={setSelectedSearchHistoryIndex}
+                />
               </GridItem>
               <GridItem colSpan={1}>
                 <Button
