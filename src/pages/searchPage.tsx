@@ -1,7 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { redirectURL, UniversityCourseResponse } from "../components/types";
+import {
+  redirectURL,
+  UniversityCourseResponse,
+  UserSearchRequestTypes,
+} from "../components/types";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "../components/ui/toaster";
@@ -15,7 +19,8 @@ import Loading from "../components/ui/loading";
 import styles from "../css-styles/searchPage.module.css";
 import SearchOptSelector from "../components/ui/searchComboBox";
 import InputBox from "../components/ui/inputBox";
-import Worker from "../workers/courseProcessorWorker?worker";
+import CourseFetchWorker from "../workers/courseProcessorWorker?worker";
+import SearchHistoryWorker from "../workers/searchHistoryWorker?worker";
 import React from "react";
 
 const dayOfTheWeekOptions = [
@@ -82,22 +87,30 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
+
+  const [termType] = useState<"Semester" | "Quarter">(
+    university === "California State University San Luis Obispo"
+      ? "Quarter"
+      : "Semester",
+  );
+  const currentMonth = new Date().getMonth();
+
   const {
     searchOptions,
     setSearchResults,
     searchQueryParams,
     setSearchQueryParams,
   } = useSearchContext();
-  const [triggerWarning, setTriggerWarning] = useState(true);
-  const [isWorkerReady, setIsWorkerReady] = useState(false);
-  const dataWorkerRef = useRef<Worker | null>(null);
+
+  const courseWorkerRef = useRef<Worker | null>(null);
+  const searchHistoryWorkerRef = useRef<Worker | null>(null);
+
+  // Searching states
   const [performSearch, setPerformSearch] = useState(false);
-  const [subject, setSubject] = useState<string[]>([]);
   const [fetchingAvailableSubjectCourses, setFetchingAvailableSubjectCourses] =
     useState(false);
-  const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
-    { label: string; value: string }[]
-  >([]);
+
+  const [subject, setSubject] = useState<string[]>([]);
   const [courseCatalogNum, setCourseCatalogNum] = useState<string[]>([]);
   const [courseAttributes, setCourseAttributes] = useState<string[]>([]);
   const [dayOfTheWeek, setDayOfTheWeek] = useState<string[]>([]);
@@ -105,18 +118,32 @@ const SearchPage = () => {
   const [startTime, setStartTime] = useState<string[]>([]);
   const [endTime, setEndTime] = useState<string[]>([]);
   const [instructMode, setInstructMode] = useState<string[]>([]);
+  const [instructorLastName, setInstructorLastName] = useState<string[]>([]);
+  const [instructorScore, setInstructorScore] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string[]>([]);
+
+  // Warning and error states
+  const [triggerWarning, setTriggerWarning] = useState(true);
+  const [invalidInstructorScore, setInvalidInstructorScore] = useState(false);
+  const [isWorkerReady, setIsWorkerReady] = useState(false);
+
+  const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [availableInstructorFirstNames, setAvailableInstructorFirstNames] =
     useState<{ label: string; value: string }[]>([]);
   const [instructorFirstName, setInstructorFirstName] = useState<string[]>([]);
   const [availableInstructorLastNames, setAvailableInstructorLastNames] =
     useState<{ label: string; value: string }[]>([]);
-  const [instructorLastName, setInstructorLastName] = useState<string[]>([]);
-  const [instructorScore, setInstructorScore] = useState<string>("");
-  const [invalidInstructorScore, setInvalidInstructorScore] = useState(false);
-  const [searchTerm, setSearchTerm] = useState<string[]>([]);
-  const [termType] = useState<"Semester" | "Quarter">("Quarter");
-  const currentMonth = new Date().getMonth();
 
+  const [searchHistoryList, setSearchHistoryList] = useState<
+    {
+      timestamp: number;
+      params: UserSearchRequestTypes;
+    }[]
+  >([]);
+
+  // Navigate to results page with data
   const navigateToResults = useCallback(
     (data: UniversityCourseResponse[]) => {
       setSearchResults(data);
@@ -141,9 +168,9 @@ const SearchPage = () => {
   }, [currentMonth, searchOptions.selected_term, termType]);
 
   useEffect(() => {
-    const dataWorker = new Worker();
+    const dataWorker = new CourseFetchWorker();
 
-    dataWorkerRef.current = dataWorker;
+    courseWorkerRef.current = dataWorker;
     dataWorker.onmessage = async (event) => {
       const { status, action, url, searchParams } = event.data;
       if (status === "ready") {
@@ -194,11 +221,40 @@ const SearchPage = () => {
       }
     
     return () => {
-      if (dataWorkerRef.current) {
-        dataWorkerRef.current.terminate();
+      if (courseWorkerRef.current) {
+        courseWorkerRef.current.terminate();
       }
     
   }, [navigateToResults, performSearch, searchTerm]);
+
+  useEffect(() => {
+    const searchHistoryWorker = new SearchHistoryWorker();
+    searchHistoryWorkerRef.current = searchHistoryWorker;
+
+    searchHistoryWorker.onmessage = (event) => {
+      const { status, action, data } = event.data;
+      if (status === "ready") {
+        return;
+      }
+      if (action === "SEARCH_HISTORY_DATA") {
+        setSearchHistoryList(data);
+        return;
+      }
+      if (action === "SEARCH_HISTORY_RECORD") {
+        // TO BE DONE
+        return;
+      }
+      if (action === "SAVE_SEARCH_COMPLETE") {
+        // No action needed for save complete
+        return;
+      }
+    
+    return () => {
+      if (searchHistoryWorkerRef.current) {
+        searchHistoryWorkerRef.current.terminate();
+      }
+    
+  }, []);
 
   const submitSearch = useCallback(() => {
     if (searchTerm.length < 1 || searchTerm[0] === "") {
@@ -236,8 +292,8 @@ const SearchPage = () => {
       searchTerm: searchTerm,
     
     const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
-    if (isWorkerReady && dataWorkerRef.current) {
-      dataWorkerRef.current.postMessage({
+    if (isWorkerReady && courseWorkerRef.current) {
+      courseWorkerRef.current.postMessage({
         action: "fetchCourses",
         url,
         university,

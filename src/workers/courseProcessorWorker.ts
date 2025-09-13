@@ -1,15 +1,15 @@
+import { parseFullName } from "parse-full-name";
 import {
   UniversityCourseResponse,
   UserSearchRequestTypes,
 } from "../components/types";
 import { createAndOpenDB } from "../components/dbFactory";
-import { parseFullName } from "parse-full-name";
 const cacheTTL = 1000 * 60 * 120; // 120 minutes Cache TTL
 
 self.postMessage({ status: "ready" });
 
 self.onerror = (error) => {
-  console.error("An error occurred in the worker:", error);
+  console.error("An error occurred in the course processor worker:", error);
 
 
 const processData = (data: UniversityCourseResponse[]) => {
