@@ -1,0 +1,10 @@
+.historyRecordDiv {
+  padding: 10px;
+  border-bottom: 1px solid var(--chakra-colors-primary-light);
+}
+
+@media (prefers-color-scheme: light) {
+  .historyRecordDiv {
+    border-bottom: 1px solid var(--chakra-colors-primary-dark);
+  }
+}

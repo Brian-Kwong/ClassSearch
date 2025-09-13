@@ -1,6 +1,7 @@
 import { Drawer, Portal, CloseButton, Text, Stack } from "@chakra-ui/react";
 import { Virtuoso } from "react-virtuoso";
 import { UserSearchRequestTypes } from "../types";
+import styles from "../../css-styles/historyDrawer.module.css";
 
 type SearchHistoryDrawerProps = {
   openButton: React.ReactNode;
@@ -35,10 +36,7 @@ const HistoryDrawer = ({
                   const item = searchHistory[index];
                   return (
                     <Stack
-                      style={{
-                        padding: "10px",
-                        borderBottom: "1px solid #ccc",
-                      }}
+                      className={styles.historyRecordDiv}
                       gap={2}
                       onClick={() => {
                         if (setSelectedSearchHistoryIndex) {

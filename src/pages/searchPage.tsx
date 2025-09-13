@@ -305,11 +305,12 @@ const SearchPage = () => {
         params: searchParams,
         forSearch: performSearch,
       });
-      searchHistoryWorkerRef.current?.postMessage({
+      if(!performSearch){
+        searchHistoryWorkerRef.current?.postMessage({
         action: "saveSearch",
         params: searchParams,
       });
-      setPerformSearch(false);
+      }
       setFetchingAvailableSubjectCourses(true);
     }
   }, [
