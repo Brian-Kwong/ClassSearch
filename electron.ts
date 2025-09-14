@@ -110,7 +110,7 @@ ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
             const data = await searchResults.json();
             if (data) {
               // Check for additional pages
-              if (data.pageCount > 1) {
+              if (data.pageCount && data.pageCount > 1) {
                 for (let i = 2; i <= data.pageCount; i++) {
                   try {
                     const pageResults = await fetch(`${params.url}&page=${i}`, {

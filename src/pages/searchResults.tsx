@@ -125,6 +125,7 @@ const SearchResultsPage = () => {
         itemContent={(index, course) => (
           <ClassInfoCard
             key={index}
+            university={university || ""}
             course={course}
             iconName={icons.at(index) || { lib: "mdi", name: "book" }}
             professorRating={

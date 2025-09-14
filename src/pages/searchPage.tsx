@@ -227,6 +227,7 @@ const SearchPage = () => {
     
     return () => {
       if (courseWorkerRef.current) {
+        courseWorkerRef.current.onmessage = null;
         courseWorkerRef.current.terminate();
       }
     
@@ -256,6 +257,7 @@ const SearchPage = () => {
     
     return () => {
       if (searchHistoryWorkerRef.current) {
+        searchHistoryWorkerRef.current.onmessage = null;
         searchHistoryWorkerRef.current.terminate();
       }
     
@@ -305,11 +307,11 @@ const SearchPage = () => {
         params: searchParams,
         forSearch: performSearch,
       });
-      if(!performSearch){
+      if (!performSearch) {
         searchHistoryWorkerRef.current?.postMessage({
-        action: "saveSearch",
-        params: searchParams,
-      });
+          action: "saveSearch",
+          params: searchParams,
+        });
       }
       setFetchingAvailableSubjectCourses(true);
     }

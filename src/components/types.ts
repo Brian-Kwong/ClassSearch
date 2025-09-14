@@ -97,6 +97,7 @@ export type UniversityCourseResponse = {
   strm: string; // Term
   session_descr: string;
   class_section: string;
+  class_nbr: string;
   location_descr: string;
   start_dt: string;
   end_dt: string;
@@ -144,6 +145,24 @@ export type UniversityCourseResponse = {
   isWaitlisted: boolean;
   notes: Array<unknown>;
   icons: Array<unknown>;
+
+
+export type UniversityCourseDetailsResponse = {
+  section_info: {
+    enroll_dates?: {
+      open_date: string;
+      close_date: string;
+    
+    catalog_descr: {
+      crse_catalog_description: string;
+    
+    notes: {
+      class_notes: string;
+    
+    enrollment_information: {
+      enroll_requirements: string;
+    
+  
 
 
 export type iconModelDBEntry = {

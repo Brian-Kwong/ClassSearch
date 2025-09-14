@@ -2,6 +2,7 @@ import {
   UniversityCourseResponse,
   UserSearchRequestTypes,
   TeacherRatings,
+  UniversityCourseDetailsResponse,
 } from "../components/types";
 import { openDB, DBSchema } from "idb";
 export interface CourseDB extends DBSchema {
@@ -29,6 +30,14 @@ export interface CourseDB extends DBSchema {
       ratings: Record<string, TeacherRatings>;
     
   
+  classDetails: {
+    key: string;
+    value: {
+      classNbr: string;
+      timestamp: number;
+      data: UniversityCourseDetailsResponse;
+    
+  
 }
 
 export const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
@@ -36,5 +45,6 @@ export const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
     db.createObjectStore("coursesSearches", { keyPath: "url" });
     db.createObjectStore("searchHistory", { keyPath: "timestamp" });
     db.createObjectStore("teacherRatings", { keyPath: "school" });
+    db.createObjectStore("classDetails", { keyPath: "classNbr" });
   },
 });

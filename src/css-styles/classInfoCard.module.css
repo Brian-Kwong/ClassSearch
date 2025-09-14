@@ -1,0 +1,23 @@
+.entry {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-grow: 1;
+  gap: 20px !important;
+  width: 100% !important;
+}
+
+.categoryLabel {
+  text-align: left !important;
+}
+
+.categoryData {
+  text-align: right !important;
+}
+
+.textLabelLoading {
+  width: 100% !important;
+  text-align: center !important;
+  font-style: italic;
+}
