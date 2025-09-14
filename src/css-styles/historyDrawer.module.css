@@ -1,3 +1,7 @@
+.historyDrawerContent {
+  background-color: var(--chakra-colors-primary-dark);
+}
+
 .historyRecordDiv {
   padding: 10px;
   border-bottom: 1px solid var(--chakra-colors-primary-light);

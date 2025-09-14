@@ -1,4 +1,5 @@
 import { Portal, Select, createListCollection } from "@chakra-ui/react";
+import styles from "../../css-styles/inputBox.module.css";
 
 type CSUSelectorProps = {
   selectedValue: string;
@@ -25,7 +26,7 @@ const CSUSelector = ({ selectedValue, setSelectedValue }: CSUSelectorProps) => {
       </Select.Control>
       <Portal>
         <Select.Positioner>
-          <Select.Content>
+          <Select.Content className={styles.inputBoxContainer}>
             {csuList.items.map((university) => (
               <Select.Item item={university} key={university.value}>
                 {university.label}

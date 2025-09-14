@@ -16,6 +16,11 @@
   text-align: right !important;
 }
 
+.detailsPanel {
+  padding: 0;
+  margin-top: -16px !important;
+}
+
 .textLabelLoading {
   width: 100% !important;
   text-align: center !important;

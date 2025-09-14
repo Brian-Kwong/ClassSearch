@@ -42,3 +42,26 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.inputBoxContainer {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  background-color: var(--chakra-colors-primary-dark);
+}
+
+@media (prefers-color-scheme: light) {
+  .inputBoxInput {
+    border-color: var(--chakra-colors-brand-300);
+  }
+
+  .inputBoxInput:active,
+  .inputBoxInput:focus,
+  .inputBoxInput:hover {
+    border-color: var(--chakra-colors-brand-400);
+    box-shadow: 0 0 0 1px var(--chakra-colors-brand-400);
+  }
+
+  .inputBoxContainer {
+    background-color: var(--chakra-colors-primary-light);
+  }
+}

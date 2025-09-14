@@ -23,7 +23,7 @@ const HistoryDrawer = ({
       <Portal>
         <Drawer.Backdrop />
         <Drawer.Positioner>
-          <Drawer.Content>
+          <Drawer.Content className={styles.historyDrawerContent}>
             <Drawer.Header>
               <Drawer.Title>Search History</Drawer.Title>
             </Drawer.Header>

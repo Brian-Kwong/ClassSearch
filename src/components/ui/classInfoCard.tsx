@@ -71,8 +71,8 @@ const ClassInfoCard = ({
         clearTimeout(getClassDetailsDebounceRef.current);
       }
     
-  // No need to redefine a static debounce function
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // No need to redefine a static debounce function
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearClassDetailsDebounce = React.useCallback(() => {
@@ -238,7 +238,7 @@ const ClassInfoCard = ({
             </Card.Body>
           </Card.Root>
         </Accordion.ItemTrigger>
-        <Accordion.ItemContent style={{ padding: 0, marginTop: -16 }}>
+        <Accordion.ItemContent>
           <HStack
             flexWrap={"wrap"}
             padding={4}

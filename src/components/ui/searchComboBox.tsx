@@ -88,7 +88,7 @@ const SearchOptSelector = ({
       </Combobox.Control>
       <Portal>
         <Combobox.Positioner>
-          <Combobox.Content maxHeight="200px" overflowY="auto">
+          <Combobox.Content className={styles.inputBoxContainer}>
             <Combobox.Empty>No option found</Combobox.Empty>
             {optionsList.items.map((option, index) => (
               <Combobox.Item item={option} key={index}>
