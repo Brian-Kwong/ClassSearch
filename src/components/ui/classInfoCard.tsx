@@ -71,6 +71,8 @@ const ClassInfoCard = ({
         clearTimeout(getClassDetailsDebounceRef.current);
       }
     
+  // No need to redefine a static debounce function
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearClassDetailsDebounce = React.useCallback(() => {
