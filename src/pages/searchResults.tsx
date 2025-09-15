@@ -54,7 +54,7 @@ const SearchResultsPage = () => {
         setTeacherRatingsList(ratings);
       }
     });
-  }, [university]);
+  }, [university, settings]);
 
   useEffect(() => {
     const fetchIcons = async () => {
