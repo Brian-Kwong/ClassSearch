@@ -22,11 +22,9 @@ export const Settings = createOverlay((props) => {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
   React.useEffect(() => {
-    console.log("User settings updated:", userSettings);
     if (userSettings["Dark Mode"] === "dark") {
       setTheme("dark");
     } else if (userSettings["Dark Mode"] === "light") {
-      console.log("User prefers light mode");
       setTheme("light");
     } else {
       setTheme("system");
