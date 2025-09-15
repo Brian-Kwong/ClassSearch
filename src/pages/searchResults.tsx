@@ -9,9 +9,10 @@ import {
   findClosestTeacherRating,
 } from "../components/rateMyProfessorFetcher";
 import ClassInfoCard from "../components/ui/classInfoCard";
-import SortBySelector from "../components/ui/sortBySelector";
+import { sortByList } from "../components/ui/settingOptions";
 import sortCoursesBy from "../components/sortBy";
 import styles from "../css-styles/searchResults.module.css";
+import Selector from "../components/ui/selector";
 
 const SearchResultsPage = () => {
   const navigate = useNavigate();
@@ -103,7 +104,11 @@ const SearchResultsPage = () => {
           </Stack>
         ) : null}
         <Group>
-          <SortBySelector sortBy={sortBy} setSortBy={setSortBy} />
+          <Selector
+            selectedValue={sortBy}
+            setSelectedValue={setSortBy}
+            options={sortByList}
+          />
           <Button
             colorPalette="brand"
             onClick={() => {

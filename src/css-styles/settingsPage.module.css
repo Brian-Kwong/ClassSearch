@@ -1,0 +1,25 @@
+.settingsContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px !important;
+  max-height: 80vh;
+  overflow-y: auto;
+  gap: 20px;
+  border-radius: 4px;
+  background-color: color-mix(
+    in srgb,
+    var(--chakra-colors-primary-light) 90%,
+    black 10%
+  );
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+}
+
+.dark {
+  background-color: color-mix(
+    in srgb,
+    var(--chakra-colors-primary-dark) 90%,
+    white 10%
+  );
+  color: var(--chakra-colors-text);
+}

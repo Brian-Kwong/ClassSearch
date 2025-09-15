@@ -5,6 +5,7 @@ import {
   UserSearchRequestTypes,
 } from "../types";
 import { searchDataContext } from "./contextFactory";
+import { defaultSettings } from "../ui/settingOptions";
 
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   const [searchOptions, setSearchOptions] = useState<SearchParamJson>(
@@ -55,6 +56,12 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
       : "courseNumber",
   );
 
+  const [settings, setSettings] = useState<{ [key: string]: string }>(
+    window.localStorage.getItem("settings")
+      ? JSON.parse(window.localStorage.getItem("settings")!)
+      : {},
+  );
+
   useEffect(() => {
     window.sessionStorage.setItem(
       "searchOptions",
@@ -80,6 +87,18 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
     window.sessionStorage.setItem("sortBy", JSON.stringify(sortBy));
   }, [sortBy]);
 
+  useEffect(() => {
+    window.localStorage.setItem("settings", JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    if (Object.keys(settings).length === 0) {
+      setSettings(defaultSettings);
+    }
+    // Check on initial load only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <searchDataContext.Provider
       value={{
@@ -99,6 +118,8 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
         ) => setSearchQueryParams(params),
         sortBy,
         setSortBy: (sortBy: string) => setSortBy(sortBy),
+        settings,
+        setSettings,
       }}
     >
       {children}

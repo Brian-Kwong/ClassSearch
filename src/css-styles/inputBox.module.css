@@ -46,22 +46,18 @@
 .inputBoxContainer {
   max-height: 200px !important;
   overflow-y: auto !important;
-  background-color: var(--chakra-colors-primary-dark);
+  background-color: var(--chakra-colors-primary-light);
 }
 
-@media (prefers-color-scheme: light) {
-  .inputBoxInput {
-    border-color: var(--chakra-colors-brand-300);
-  }
+.dark {
+  background-color: var(--chakra-colors-primary-dark) !important;
+  color: var(--chakra-colors-text);
+  border-color: var(--chakra-colors-border-dark) !important;
+}
 
-  .inputBoxInput:active,
-  .inputBoxInput:focus,
-  .inputBoxInput:hover {
-    border-color: var(--chakra-colors-brand-400);
-    box-shadow: 0 0 0 1px var(--chakra-colors-brand-400);
-  }
-
-  .inputBoxContainer {
-    background-color: var(--chakra-colors-primary-light);
-  }
+.darkInput:active,
+.darkInput:focus,
+.darkInput:hover {
+  border-color: var(--chakra-colors-brand-400);
+  box-shadow: 0 0 0 1px var(--chakra-colors-brand-400);
 }

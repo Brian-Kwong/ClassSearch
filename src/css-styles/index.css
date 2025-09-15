@@ -1,20 +1,17 @@
-:root {
+html {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: color-mix(
-    in srgb,
-    var(--chakra-colors-primary-dark) 90%,
-    black 10%
-  );
-
+  background-color: var(--chakra-colors-primary-light);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark {
+  background-color: var(--chakra-colors-primary-dark);
 }
 
 body {
@@ -28,11 +25,4 @@ body {
 
 body::-webkit-scrollbar {
   display: none;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
 }

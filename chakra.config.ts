@@ -52,7 +52,16 @@ const config = defineConfig({
           _light: { value: "{colors.brand.100}" },
           _dark: { value: "{colors.brand.100}" },
         },
+        primaryDiv: {
+          _light: { value: "{colors.brand.500}" },
+          _dark: { value: "{colors.brand.900}" },
+        },
       },
+    },
+  },
+  globalCss: {
+    body: {
+      bg: { _light: "background._light", _dark: "background._dark" },
     },
   },
 });

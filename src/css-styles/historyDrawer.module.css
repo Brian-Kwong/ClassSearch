@@ -1,14 +1,16 @@
 .historyDrawerContent {
-  background-color: var(--chakra-colors-primary-dark);
+  background-color: var(--chakra-colors-primary-light);
 }
 
 .historyRecordDiv {
   padding: 10px;
-  border-bottom: 1px solid var(--chakra-colors-primary-light);
+  border-bottom: 1px solid var(--chakra-colors-primary-dark);
 }
 
-@media (prefers-color-scheme: light) {
-  .historyRecordDiv {
-    border-bottom: 1px solid var(--chakra-colors-primary-dark);
-  }
+.dark {
+  background-color: var(--chakra-colors-primary-dark);
+}
+
+.dark .historyRecordDiv {
+  border-bottom: 1px solid var(--chakra-colors-primary-light);
 }

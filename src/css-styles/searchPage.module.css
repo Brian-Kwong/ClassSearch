@@ -12,27 +12,38 @@
   transform: scale(1.1);
 }
 
+.settingIcon {
+  color: var(--chakra-colors-text);
+  font-size: 24px;
+  padding: 4px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 1000;
+}
+
 .searchFiltersContainer {
   display: flex;
   flex-direction: column;
   padding: 20px !important;
   gap: 20px;
   border-radius: 4px;
+
+  background-color: color-mix(
+    in srgb,
+    var(--chakra-colors-primary-light) 90%,
+    black 10%
+  );
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dark {
   background-color: color-mix(
     in srgb,
     var(--chakra-colors-primary-dark) 90%,
     white 10%
   );
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-@media (prefers-color-scheme: light) {
-  .searchFiltersContainer {
-    background-color: color-mix(
-      in srgb,
-      var(--chakra-colors-primary-light) 90%,
-      black 10%
-    );
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
 }

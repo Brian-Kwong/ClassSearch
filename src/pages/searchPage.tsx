@@ -15,6 +15,9 @@ import {
   getProfessorRatings,
   findClosestTeacherRating,
 } from "../components/rateMyProfessorFetcher";
+import { IoIosSettings } from "react-icons/io";
+import { useTheme } from "next-themes";
+import { Settings } from "../pages/settings";
 import Loading from "../components/ui/loading";
 import styles from "../css-styles/searchPage.module.css";
 import SearchOptSelector from "../components/ui/searchComboBox";
@@ -85,6 +88,8 @@ const generate_available_terms = (termType: "Semester" | "Quarter") => {
 
 
 const SearchPage = () => {
+  const { theme, resolvedTheme } = useTheme();
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
@@ -670,7 +675,9 @@ const SearchPage = () => {
         <Loading message="Searching for courses..." />
       ) : (
         <>
-          <div className={styles.searchFiltersContainer}>
+          <div
+            className={`${styles.searchFiltersContainer} ${theme === "system" ? (resolvedTheme === "dark" ? styles.dark : "") : theme === "dark" ? styles.dark : ""}`}
+          >
             <Text fontSize="4xl" fontWeight="bold">
               Course Search
             </Text>
@@ -860,7 +867,12 @@ const SearchPage = () => {
               </GridItem>
             </Grid>
           </div>
+          <IoIosSettings
+            className={styles.settingIcon}
+            onClick={() => Settings.open("a", {})}
+          />
           <Toaster />
+          <Settings.Viewport />
         </>
       )}
     </>

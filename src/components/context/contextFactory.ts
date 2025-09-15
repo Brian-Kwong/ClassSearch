@@ -24,6 +24,8 @@ export interface SearchDataContextType {
   ) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
+  settings: { [key: string]: string 
+  setSettings: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 }
 
 export const searchDataContext = createContext<

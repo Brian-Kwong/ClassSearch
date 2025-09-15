@@ -8,10 +8,10 @@ import system from "../chakra.config.ts";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ChakraProvider value={system}>
-      <ThemeProvider attribute="class" disableTransitionOnChange>
+    <ThemeProvider attribute="class" disableTransitionOnChange>
+      <ChakraProvider value={system}>
         <App />
-      </ThemeProvider>
-    </ChakraProvider>
+      </ChakraProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 );

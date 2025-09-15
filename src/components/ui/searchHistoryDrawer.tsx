@@ -2,6 +2,7 @@ import { Drawer, Portal, CloseButton, Text, Stack } from "@chakra-ui/react";
 import { Virtuoso } from "react-virtuoso";
 import { UserSearchRequestTypes } from "../types";
 import styles from "../../css-styles/historyDrawer.module.css";
+import { useTheme } from "next-themes";
 
 type SearchHistoryDrawerProps = {
   openButton: React.ReactNode;
@@ -17,13 +18,17 @@ const HistoryDrawer = ({
   searchHistory,
   setSelectedSearchHistoryIndex,
 }: SearchHistoryDrawerProps) => {
+  const { theme, resolvedTheme } = useTheme();
+
   return (
     <Drawer.Root>
       <Drawer.Trigger asChild>{openButton}</Drawer.Trigger>
       <Portal>
         <Drawer.Backdrop />
         <Drawer.Positioner>
-          <Drawer.Content className={styles.historyDrawerContent}>
+          <Drawer.Content
+            className={`${styles.historyDrawerContent} ${theme === "system" ? (resolvedTheme === "dark" ? styles.dark : "") : theme === "dark" ? styles.dark : ""}`}
+          >
             <Drawer.Header>
               <Drawer.Title>Search History</Drawer.Title>
             </Drawer.Header>

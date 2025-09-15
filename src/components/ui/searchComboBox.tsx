@@ -6,6 +6,7 @@ import {
   Tag,
 } from "@chakra-ui/react";
 import { useCallback } from "react";
+import { useTheme } from "next-themes";
 import React from "react";
 import styles from "../../css-styles/inputBox.module.css";
 
@@ -25,6 +26,7 @@ const SearchOptSelector = ({
   multiple = true,
 }: SearchOptSelectorProps) => {
   const { contains } = useFilter({ sensitivity: "base" });
+  const { theme, resolvedTheme } = useTheme();
 
   const { collection: optionsList, filter } = useListCollection({
     initialItems: options,
@@ -88,7 +90,9 @@ const SearchOptSelector = ({
       </Combobox.Control>
       <Portal>
         <Combobox.Positioner>
-          <Combobox.Content className={styles.inputBoxContainer}>
+          <Combobox.Content
+            className={`${styles.inputBoxContainer} ${theme === "system" ? (resolvedTheme === "dark" ? styles.dark : "") : theme === "dark" ? styles.dark : ""}`}
+          >
             <Combobox.Empty>No option found</Combobox.Empty>
             {optionsList.items.map((option, index) => (
               <Combobox.Item item={option} key={index}>
