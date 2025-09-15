@@ -8,14 +8,14 @@ import {
   Portal,
   createOverlay,
 } from "@chakra-ui/react";
-import { settingsCategories } from "../components/ui/settingOptions";
-import React from "react";
-import { useSearchContext } from "../components/context/contextFactory";
+import { settingsCategories } from "./settingOptions";
+import { useSearchContext } from "../context/contextFactory";
 import { useTheme } from "next-themes";
-import { createSettingControl } from "../components/settingComps";
-import styles from "../css-styles/settingsPage.module.css";
+import { createSettingControl } from "../settingComps";
+import React from "react";
+import styles from "../../css-styles/settingsPage.module.css";
 
-export const Settings = createOverlay((props) => {
+const Settings = createOverlay((props) => {
   const { ...rest } = props;
   const { settings: userSettings, setSettings: setUserSettings } =
     useSearchContext();
@@ -116,3 +116,5 @@ export const Settings = createOverlay((props) => {
     </Dialog.Root>
   );
 });
+
+export default Settings;

@@ -6,7 +6,7 @@ import {
   UniversityCourseResponse,
   UserSearchRequestTypes,
 } from "../components/types";
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "../components/ui/toaster";
 import { toaster } from "../components/ui/toastFactory";
@@ -17,15 +17,15 @@ import {
 } from "../components/rateMyProfessorFetcher";
 import { IoIosSettings } from "react-icons/io";
 import { useTheme } from "next-themes";
-import { Settings } from "../pages/settings";
+import courseProcessorWorker from "../workers/courseProcessorWorkerFactory";
+import searchHistoryWorker from "../workers/searchHistoryWorkerFactory";
+import Settings from "../components/ui/settings";
 import Loading from "../components/ui/loading";
-import styles from "../css-styles/searchPage.module.css";
 import SearchOptSelector from "../components/ui/searchComboBox";
 import InputBox from "../components/ui/inputBox";
 import HistoryDrawer from "../components/ui/searchHistoryDrawer";
-import CourseFetchWorker from "../workers/courseProcessorWorker?worker";
-import SearchHistoryWorker from "../workers/searchHistoryWorker?worker";
 import React from "react";
+import styles from "../css-styles/searchPage.module.css";
 
 const dayOfTheWeekOptions = [
   { label: "Any Day", value: "any" },
@@ -106,10 +106,8 @@ const SearchPage = () => {
     setSearchResults,
     searchQueryParams,
     setSearchQueryParams,
+    settings,
   } = useSearchContext();
-
-  const courseWorkerRef = useRef<Worker | null>(null);
-  const searchHistoryWorkerRef = useRef<Worker | null>(null);
 
   // Searching states
   const [performSearch, setPerformSearch] = useState(false);
@@ -131,7 +129,6 @@ const SearchPage = () => {
   // Warning and error states
   const [triggerWarning, setTriggerWarning] = useState(true);
   const [invalidInstructorScore, setInvalidInstructorScore] = useState(false);
-  const [isWorkerReady, setIsWorkerReady] = useState(false);
 
   const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
     { label: string; value: string }[]
@@ -178,30 +175,25 @@ const SearchPage = () => {
   }, [currentMonth, searchOptions.selected_term, termType]);
 
   useEffect(() => {
-    const dataWorker = new CourseFetchWorker();
-
-    courseWorkerRef.current = dataWorker;
-    dataWorker.onmessage = async (event) => {
-      const { status, action, url, searchParams } = event.data;
-      if (status === "ready") {
-        setIsWorkerReady(true);
-        return;
-      }
+    courseProcessorWorker.onmessage = async (event) => {
+      const { action, url, searchParams } = event.data;
       if (action === "IPC_REQUEST") {
         const result = await window.electronAPI.fetchCourses(url);
-        dataWorker.postMessage({
+        courseProcessorWorker.postMessage({
           action: "processData",
           url,
           ...result,
           params: searchParams,
           forSearch: performSearch,
           university: university,
+          ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
         }); // send the data to the worker for processing
       }
       if (action === "IPC_RESPONSE") {
         // eslint-disable-next-line prefer-const
         let { success, data } = event.data;
         if (performSearch) {
+          console.log("Successfully fetched and processed data.", data);
           if (instructorScore && instructorScore !== "") {
             const score = parseFloat(instructorScore);
             data = await getProfessorRatings(university || "").then(
@@ -230,18 +222,9 @@ const SearchPage = () => {
         }
       }
     
-    return () => {
-      if (courseWorkerRef.current) {
-        courseWorkerRef.current.onmessage = null;
-        courseWorkerRef.current.terminate();
-      }
-    
   }, [navigateToResults, performSearch, searchTerm]);
 
   useEffect(() => {
-    const searchHistoryWorker = new SearchHistoryWorker();
-    searchHistoryWorkerRef.current = searchHistoryWorker;
-
     searchHistoryWorker.onmessage = (event) => {
       const { status, action, data } = event.data;
       if (status === "ready") {
@@ -252,18 +235,12 @@ const SearchPage = () => {
         return;
       }
       if (action === "SEARCH_HISTORY_RECORD") {
-        // TO BE DONE
+        // TO BE DONE in future release if needed
         return;
       }
       if (action === "SAVE_SEARCH_COMPLETE") {
         // No action needed for save complete
         return;
-      }
-    
-    return () => {
-      if (searchHistoryWorkerRef.current) {
-        searchHistoryWorkerRef.current.onmessage = null;
-        searchHistoryWorkerRef.current.terminate();
       }
     
   }, []);
@@ -289,6 +266,7 @@ const SearchPage = () => {
       }
       return;
     }
+    console.log("Submitting search with params:");
     const searchParams = {
       subject: subject,
       courseCatalogNum: courseCatalogNum,
@@ -304,22 +282,21 @@ const SearchPage = () => {
       searchTerm: searchTerm,
     
     const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
-    if (isWorkerReady && courseWorkerRef.current) {
-      courseWorkerRef.current.postMessage({
-        action: "fetchCourses",
-        url,
-        university,
+    courseProcessorWorker.postMessage({
+      action: "fetchCourses",
+      url,
+      university,
+      params: searchParams,
+      forSearch: performSearch,
+      ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
+    });
+    if (performSearch) {
+      searchHistoryWorker.postMessage({
+        action: "saveSearch",
         params: searchParams,
-        forSearch: performSearch,
       });
-      if (!performSearch) {
-        searchHistoryWorkerRef.current?.postMessage({
-          action: "saveSearch",
-          params: searchParams,
-        });
-      }
-      setFetchingAvailableSubjectCourses(true);
     }
+    setFetchingAvailableSubjectCourses(true);
   }, [
     courseAttributes,
     courseCatalogNum,
@@ -329,7 +306,6 @@ const SearchPage = () => {
     instructorFirstName,
     instructorLastName,
     instructorScore,
-    isWorkerReady,
     numberOfUnits,
     performSearch,
     searchOptions.class_search_fields,
@@ -376,16 +352,16 @@ const SearchPage = () => {
   ]);
 
   useEffect(() => {
-    if (subject.length > 0 && subject[0] !== "") {
+    if (subject.length > 0 && subject[0] !== "" && !performSearch) {
       submitSearch();
     }
-  }, [subject, submitSearch]);
+  }, [subject]);
 
   useEffect(() => {
     if (performSearch) {
       submitSearch();
     }
-  }, [performSearch, submitSearch]);
+  }, [performSearch]);
 
   useEffect(() => {
     if (selectedSearchHistoryIndex !== null) {
@@ -842,8 +818,12 @@ const SearchPage = () => {
                   openButton={
                     <Button
                       onClick={() =>
-                        searchHistoryWorkerRef.current?.postMessage({
+                        searchHistoryWorker.postMessage({
                           action: "getSearchHistory",
+                          maxNumberOfEntries:
+                            parseInt(
+                              settings["Maximum Search History Entries"],
+                            ) || 1024,
                         })
                       }
                       className={styles.button}

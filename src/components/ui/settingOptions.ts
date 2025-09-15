@@ -13,9 +13,9 @@ export type SettingOption = {
 const defaultSettings: { [key: string]: string } = {
   "Enable Caching": "true",
   "Course Data Cache Duration": "60",
-  "Professor Ratings Cache Duration": "60",
-  "Class Details Cache Duration": "60",
-  "Search History Cache Duration": "1440",
+  "Professor Ratings Cache Duration": "1",
+  "Class Details Cache Duration": "1",
+  "Max Number of Search History Entries": "1024",
   "Results Per Page": "20",
   "Default Sort Order": "availability",
   "Prefetch Details when Hovering": "true",
@@ -32,7 +32,7 @@ const cacheSettingsOptions: SettingOption[] = [
   {
     setting: "Course Data Cache Duration",
     description:
-      "Set the duration for how course data is cached.  A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
+      "Set the number of minutes for how course data is cached.  A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
     settingType: "number",
     validationFn: (value: string) => {
       try {
@@ -46,35 +46,35 @@ const cacheSettingsOptions: SettingOption[] = [
   {
     setting: "Professor Ratings Cache Duration",
     description:
-      "Set the duration for how professor ratings are cached. A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
+      "Set the number of days for how professor ratings are cached. A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
     settingType: "number",
     validationFn: (value: string) => {
       try {
-        return parseInt(value) >= 0 && parseInt(value) <= 1440;
+        return parseInt(value) >= 0 && parseInt(value) <= 365;
       } catch {
         return false;
       }
     },
-    errorMessage: "Cache duration must be between 0 and 1440 minutes.",
+    errorMessage: "Cache duration must be between 0 and 365 days.",
   },
   {
     setting: "Class Details Cache Duration",
     description:
-      "Set the duration for how class details are cached. A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
+      "Set the number of days for how long class details are cached. A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
     settingType: "number",
     validationFn: (value: string) => {
       try {
-        return parseInt(value) >= 0 && parseInt(value) <= 1440;
+        return parseInt(value) >= 0 && parseInt(value) <= 14;
       } catch {
         return false;
       }
     },
-    errorMessage: "Cache duration must be between 0 and 1440 minutes.",
+    errorMessage: "Cache duration must be between 0 and 14 days.",
   },
   {
-    setting: "Search History Cache Duration",
+    setting: "Max Number of Search History Entries",
     description:
-      "Set the duration for how search history is cached. A longer duration improves performance but at the cost of showing outdated data. Higher cache value may also require increased storage.",
+      "Set the maximum number of search history entries to keep. Older entries will be removed when this limit is reached.",
     settingType: "number",
     validationFn: (value: string) => {
       try {
@@ -83,7 +83,7 @@ const cacheSettingsOptions: SettingOption[] = [
         return false;
       }
     },
-    errorMessage: "Cache duration must be between 0 and 43200 minutes.",
+    errorMessage: "Cache duration must be between 0 and 43200 entries.",
   },
   {
     setting: "Clear Cache",

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  SearchParamJson,
+  SearchParamJSON,
   UniversityCourseResponse,
   UserSearchRequestTypes,
 } from "../types";
@@ -8,10 +8,10 @@ import { searchDataContext } from "./contextFactory";
 import { defaultSettings } from "../ui/settingOptions";
 
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
-  const [searchOptions, setSearchOptions] = useState<SearchParamJson>(
+  const [searchOptions, setSearchOptions] = useState<SearchParamJSON>(
     window.sessionStorage.getItem("searchOptions")
       ? JSON.parse(window.sessionStorage.getItem("searchOptions")!)
-      : ({} as SearchParamJson),
+      : ({} as SearchParamJSON),
   );
 
   const [searchResults, setSearchResults] = useState<
@@ -103,7 +103,7 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
     <searchDataContext.Provider
       value={{
         searchOptions,
-        setSearchOptions: (options: SearchParamJson) =>
+        setSearchOptions: (options: SearchParamJSON) =>
           setSearchOptions(options),
         setSearchResults: (results: UniversityCourseResponse[]) =>
           setSearchResults(results),

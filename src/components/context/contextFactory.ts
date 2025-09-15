@@ -1,13 +1,13 @@
 import { createContext, useContext } from "react";
 import {
-  SearchParamJson,
+  SearchParamJSON,
   UniversityCourseResponse,
   UserSearchRequestTypes,
 } from "../types";
 
 export interface SearchDataContextType {
-  searchOptions: SearchParamJson;
-  setSearchOptions: (options: SearchParamJson) => void;
+  searchOptions: SearchParamJSON;
+  setSearchOptions: (options: SearchParamJSON) => void;
   setSearchResults: (results: UniversityCourseResponse[]) => void;
   searchResults: UniversityCourseResponse[];
   searchQueryParams: UserSearchRequestTypes & {

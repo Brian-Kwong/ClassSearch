@@ -81,7 +81,7 @@ const SearchOptSelector = ({
       <Combobox.Control>
         <Combobox.Input
           placeholder="Type to search..."
-          className={styles.inputBoxInput}
+          className={`${styles.inputBoxInput} ${theme === "system" ? (resolvedTheme === "dark" ? styles.dark : "") : theme === "dark" ? styles.dark : ""}`}
         />
         <Combobox.IndicatorGroup>
           <Combobox.ClearTrigger onClick={() => setSelectedValue([""])} />

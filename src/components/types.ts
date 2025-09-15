@@ -41,7 +41,7 @@
 ***REMOVED***
 
 
-export type SearchParamJson = {
+export type SearchParamJSON = {
   subjects: [
     {
       subject: string;

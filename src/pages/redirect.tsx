@@ -4,17 +4,18 @@ import { useNavigate } from "react-router-dom";
 import Error from "./error";
 import {
   redirectURL,
-  SearchParamJson,
+  SearchParamJSON,
   TeacherRatings,
 } from "../components/types";
 import { PulseLoader } from "react-spinners";
 import { useSearchContext } from "../components/context/contextFactory";
 import Loading from "../components/ui/loading";
+
 // Extend the Window interface to allow for the electronAPI (Secure IPC comms)
 declare global {
   interface Window {
     electronAPI: {
-      firstLogin: (url: string) => Promise<SearchParamJson | null>;
+      firstLogin: (url: string) => Promise<SearchParamJSON | null>;
       fetchCourses: (
         url: string,
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
@@ -37,7 +38,7 @@ const Redirect = () => {
   const navigate = useNavigate();
   const { setSearchOptions } = useSearchContext();
   const university = searchParams.get("university");
-  const [universityInfo, setUniversityInfo] = useState<SearchParamJson | null>(
+  const [universityInfo, setUniversityInfo] = useState<SearchParamJSON | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ const Redirect = () => {
     const url = `${redirectURL[university as keyof typeof redirectURL]}`;
     window.electronAPI
       .firstLogin(url)
-      .then((result: SearchParamJson | null) => {
+      .then((result: SearchParamJSON | null) => {
         setLoading(false);
         setUniversityInfo(result);
         isCreatingLoginWindow.current = false;

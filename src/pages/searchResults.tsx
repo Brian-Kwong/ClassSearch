@@ -8,18 +8,24 @@ import {
   getProfessorRatings,
   findClosestTeacherRating,
 } from "../components/rateMyProfessorFetcher";
-import ClassInfoCard from "../components/ui/classInfoCard";
 import { sortByList } from "../components/ui/settingOptions";
+import ClassInfoCard from "../components/ui/classInfoCard";
+import Selector from "../components/ui/selector";
 import sortCoursesBy from "../components/sortBy";
 import styles from "../css-styles/searchResults.module.css";
-import Selector from "../components/ui/selector";
 
 const SearchResultsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const university = searchParams.get("university");
-  const { searchResults, setSearchResults, searchOptions, sortBy, setSortBy } =
-    useSearchContext();
+  const {
+    searchResults,
+    setSearchResults,
+    searchOptions,
+    sortBy,
+    setSortBy,
+    settings,
+  } = useSearchContext();
   const [modelLoaded, setModelLoaded] = useState(false);
   const [icons, setIcons] = useState<Array<{ lib: string; name: string }>>([]);
   const [teacherRatingsList, setTeacherRatingsList] = useState<Map<
@@ -40,7 +46,10 @@ const SearchResultsPage = () => {
   }, []);
 
   useEffect(() => {
-    getProfessorRatings(university || "").then((ratings) => {
+    getProfessorRatings(
+      university || "",
+      parseInt(settings["Professor Ratings Cache Duration"]) || 1,
+    ).then((ratings) => {
       if (ratings) {
         setTeacherRatingsList(ratings);
       }

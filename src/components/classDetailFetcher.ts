@@ -1,19 +1,20 @@
 import { createAndOpenDB } from "./dbFactory";
 import { UniversityCourseDetailsResponse, redirectURL } from "./types";
 
-const TTL = 1000 * 60 * 60 * 24; // 1 day
+const days = 1000 * 60 * 60 * 24;
+const db = createAndOpenDB;
 
 const fetchClassDetails = async (
   university: string,
   institutionId: string,
   term: string,
   classNbr: string,
+  ttlDays: number = 1,
 ) => {
   try {
-    const db = await createAndOpenDB;
     const cached = await db.get("classDetails", classNbr);
     if (cached) {
-      const isFresh = Date.now() - cached.timestamp < TTL;
+      const isFresh = Date.now() - cached.timestamp < days * ttlDays;
       if (isFresh) {
         return cached.data;
       } else {

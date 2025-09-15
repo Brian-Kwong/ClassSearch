@@ -40,7 +40,7 @@ const ClassInfoCard = ({
 }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
-  const { searchOptions, searchQueryParams } = useSearchContext();
+  const { searchOptions, searchQueryParams, settings } = useSearchContext();
   const [fetchingDetails, setFetchingDetails] = React.useState(false);
   const [fetchedDetails, setFetchedDetails] = React.useState(false);
   const [courseDetails, setCourseDetails] =
@@ -59,6 +59,7 @@ const ClassInfoCard = ({
         searchOptions.class_search_fields[0].INSTITUTION,
         searchQueryParams.searchTerm[0],
         course.class_nbr,
+        parseInt(settings["Class Details Cache Duration"]) || 1,
       );
       if (details) {
         setFetchedDetails(true);

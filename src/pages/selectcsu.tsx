@@ -2,7 +2,6 @@ import { Group, Text, Button, createListCollection } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Selector from "../components/ui/selector";
-import "../css-styles/App.css";
 
 const csuList = createListCollection({
   items: [

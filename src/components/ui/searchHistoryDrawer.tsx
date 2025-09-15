@@ -1,8 +1,8 @@
 import { Drawer, Portal, CloseButton, Text, Stack } from "@chakra-ui/react";
+import { useTheme } from "next-themes";
 import { Virtuoso } from "react-virtuoso";
 import { UserSearchRequestTypes } from "../types";
 import styles from "../../css-styles/historyDrawer.module.css";
-import { useTheme } from "next-themes";
 
 type SearchHistoryDrawerProps = {
   openButton: React.ReactNode;

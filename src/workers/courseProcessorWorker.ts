@@ -4,7 +4,9 @@ import {
   UserSearchRequestTypes,
 } from "../components/types";
 import { createAndOpenDB } from "../components/dbFactory";
-const cacheTTL = 1000 * 60 * 120; // 120 minutes Cache TTL
+
+const minute = 1000 * 60 * 1;
+const db = createAndOpenDB;
 
 self.postMessage({ status: "ready" });
 
@@ -180,16 +182,15 @@ const isSubsetOfParams = (
 
 
 self.onmessage = async (event) => {
-  const { action, url, data, params, university, forSearch } = event.data;
+  const { action, url, data, params, university, forSearch, ttl } = event.data;
   if (action === "fetchCourses") {
-    const db = await createAndOpenDB;
     const cached = await db.get(
       "coursesSearches",
       `${university}-${params.subject}-${params.searchTerm}`,
     );
     if (
       cached &&
-      Date.now() - cached.timestamp < cacheTTL &&
+      Date.now() - cached.timestamp < minute * ttl &&
       isSubsetOfParams(params, cached.params)
     ) {
       if (forSearch)
@@ -216,7 +217,6 @@ self.onmessage = async (event) => {
     self.postMessage({ action: "IPC_REQUEST", url, searchParams: params });
   } else if (action === "processData" && data && data.classes) {
     const processedData = data.classes as UniversityCourseResponse[];
-    const db = await createAndOpenDB;
     if (forSearch) {
       await db.put("searchHistory", {
         timestamp: Date.now(),

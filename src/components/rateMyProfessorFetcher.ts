@@ -1,14 +1,23 @@
 import { createAndOpenDB } from "./dbFactory";
 import { TeacherRatings } from "./types";
-export const getProfessorRatings = async (university: string) => {
+
+const days = 1000 * 60 * 60 * 24;
+const db = createAndOpenDB;
+
+export const getProfessorRatings = async (
+  university: string,
+  ttlDays: number = 1,
+) => {
   if (!university) return;
   try {
-    const db = await createAndOpenDB;
     // Check the db has the ratings and they are not stale
     const cached = await db.get("teacherRatings", university);
-    const cacheTTL = 1000 * 60 * 120; // 120 minutes Cache TTL
     let rmpInfo = null;
-    if (cached && Date.now() - cached.timestamp < cacheTTL && cached.ratings) {
+    if (
+      cached &&
+      Date.now() - cached.timestamp < days * ttlDays &&
+      cached.ratings
+    ) {
       rmpInfo = { data: new Map(Object.entries(cached.ratings)) 
     } else {
       rmpInfo = await window.electronAPI.getRMPInfo(university);

@@ -40,7 +40,7 @@ export interface CourseDB extends DBSchema {
   
 }
 
-export const createAndOpenDB = openDB<CourseDB>("course-db", 1, {
+export const createAndOpenDB = await openDB<CourseDB>("course-db", 1, {
   upgrade(db) {
     db.createObjectStore("coursesSearches", { keyPath: "url" });
     db.createObjectStore("searchHistory", { keyPath: "timestamp" });

@@ -1,5 +1,4 @@
 import error from "../assets/error.png";
-import "../css-styles/App.css";
 
 type ErrorProps = {
   message: string;
