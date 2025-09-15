@@ -71,7 +71,6 @@ export const createSettingControl = (
           className={styles.button}
           onClick={() => {
             // Placeholder for action function
-            console.log(`Action for ${settingKey} triggered`);
           }}
         >
           Execute

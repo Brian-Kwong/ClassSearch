@@ -91,7 +91,6 @@ const cacheSettingsOptions: SettingOption[] = [
     settingType: "action",
     actionFn: () => {
       // This function should be implemented to clear the cache
-      console.log("Cache cleared");
     },
   },
 ];
