@@ -101,6 +101,8 @@ const Settings = createOverlay((props) => {
                                       userSettings,
                                       setUserSettings,
                                       option?.options || undefined,
+                                      option.validationFn || undefined,
+                                      option.errorMessage || undefined,
                                     )
                                   }
                                 </Stack>

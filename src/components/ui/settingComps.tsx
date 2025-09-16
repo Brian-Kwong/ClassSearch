@@ -1,4 +1,5 @@
 import { Button, ListCollection, Switch } from "@chakra-ui/react";
+import { toaster } from "./toastFactory";
 import InputBox from "./inputBox";
 import Selector from "./selector";
 import React from "react";
@@ -16,6 +17,8 @@ export const createSettingControl = (
     }>
   >,
   options?: ListCollection,
+  validationFn?: (value: string) => boolean,
+  errorMessage?: string,
 ) => {
   switch (type) {
     case "boolean":
@@ -44,6 +47,20 @@ export const createSettingControl = (
             userSettings[settingKey as keyof typeof userSettings] as string | ""
           }
           onChange={(value) => {
+            if (validationFn) {
+              if (
+                !validationFn(value.target.value) &&
+                value.target.value !== ""
+              ) {
+                toaster.create({
+                  title: "Invalid Input",
+                  description: errorMessage || "Please enter a valid value.",
+                  type: "error",
+                  duration: 3000,
+                });
+                return;
+              }
+            }
             setSettings((prev) => ({
               ...prev,
               [settingKey]: value.target.value,
