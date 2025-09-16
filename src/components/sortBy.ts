@@ -20,6 +20,7 @@ const sortCoursesBy = (
   professorRatings: Map<string, TeacherRatings>,
   sortBy: string,
 ) => {
+  try {
   const sortedCourses = [...courses];
   switch (sortBy) {
     case "courseNumber":
@@ -130,6 +131,9 @@ const sortCoursesBy = (
       break;
   }
   return sortedCourses;
+} catch {
+  return courses;
+}
 
 
 export default sortCoursesBy;

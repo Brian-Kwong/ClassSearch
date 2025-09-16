@@ -12,6 +12,7 @@ export type SettingOption = {
     setting: string;
     value: string;
   }[];
+  confirm?: boolean;
 
 
 const defaultSettings: { [key: string]: string } = {
@@ -99,8 +100,13 @@ const cacheSettingsOptions: SettingOption[] = [
     description: "Clear all cached data immediately.",
     settingType: "action",
     actionFn: () => {
-      // This function should be implemented to clear the cache
+      localStorage.removeItem("courseDataCache");
+      localStorage.removeItem("professorRatingsCache");
+      localStorage.removeItem("classDetailsCache");
+      localStorage.removeItem("searchHistory");
+      window.location.reload();
     },
+    confirm: true,
   },
 ];
 

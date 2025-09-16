@@ -19,6 +19,9 @@ declare global {
       fetchCourses: (
         url: string,
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+      fetchCourseDetails: (
+        url: string,
+      ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
       getModelPath: () => Promise<string | null>;
       getRMPInfo: (
         school: string,
@@ -29,6 +32,7 @@ declare global {
         }) => Promise<{ lib: string; name: string }[]>;
         setup: () => Promise<void>;
       
+      onFetchProgress: (callback: (event: unknown, progress: number) => void) => () => void;
     
   }
 }

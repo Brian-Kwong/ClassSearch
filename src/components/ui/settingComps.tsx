@@ -1,4 +1,10 @@
-import { Button, ListCollection, Switch } from "@chakra-ui/react";
+import {
+  Button,
+  ListCollection,
+  Switch,
+  Portal,
+  Dialog,
+} from "@chakra-ui/react";
 import { toaster } from "./toastFactory";
 import InputBox from "./inputBox";
 import Selector from "./selector";
@@ -6,6 +12,7 @@ import React from "react";
 import styles from "../../css-styles/settingsPage.module.css";
 
 export const createSettingControl = (
+  theme: string,
   type: string,
   settingKey: string,
   userSettings: {
@@ -19,6 +26,8 @@ export const createSettingControl = (
   options?: ListCollection,
   validationFn?: (value: string) => boolean,
   errorMessage?: string,
+  actionFn?: () => void,
+  confirm: boolean = false,
 ) => {
   switch (type) {
     case "boolean":
@@ -82,12 +91,47 @@ export const createSettingControl = (
         />
       );
     case "action":
-      return (
+      return confirm ? (
+        <Dialog.Root placement={"center"}>
+          <Dialog.Trigger asChild>
+            <Button size="sm" className={styles.button}>
+              {settingKey}
+            </Button>
+          </Dialog.Trigger>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content
+                className={`${styles.confirmDialog} ${theme === "dark" ? styles.dark : ""}`}
+              >
+                <Dialog.Header>
+                  <Dialog.Title>
+                    Are you sure you like to {settingKey.toLowerCase()}?
+                  </Dialog.Title>
+                </Dialog.Header>
+                <Dialog.Footer>
+                  <Dialog.ActionTrigger asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </Dialog.ActionTrigger>
+                  <Button
+                    onClick={() => {
+                      if (actionFn) actionFn();
+                    }}
+                    className={styles.button}
+                  >
+                    Confirm
+                  </Button>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
+      ) : (
         <Button
           size="sm"
           className={styles.button}
           onClick={() => {
-            // Placeholder for action function
+            if (actionFn) actionFn();
           }}
         >
           {settingKey}

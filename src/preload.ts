@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   platform: process.platform,
   firstLogin: (url: string) => ipcRenderer.invoke("firstLogin", { url }),
   fetchCourses: (url: string) => ipcRenderer.invoke("searchRequest", { url }),
+  fetchCourseDetails: (url: string) =>
+    ipcRenderer.invoke("detailRequest", { url }),
   getModelPath: () => ipcRenderer.invoke("getModelPath"),
   getRMPInfo: (school: string) => ipcRenderer.invoke("getRMPInfo", { school }),
   semanticSearch: {
@@ -16,6 +18,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("performIconSearch", { query }),
     setup: () => ipcRenderer.invoke("loadModel"),
   },
+  onFetchProgress: (callback: (event: unknown, progress: number) => void) =>
+    {
+    const listener = (_event: unknown, progress: number) => callback(_event, progress);
+    ipcRenderer.on("fetchProgress", listener);
+    return () => { ipcRenderer.removeListener("fetchProgress", listener); }
+    },
 });
 
 if (process.contextIsolated === false) {

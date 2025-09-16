@@ -220,8 +220,8 @@ self.onmessage = async (event) => {
       );
     }
     self.postMessage({ action: "IPC_REQUEST", url, searchParams: params });
-  } else if (action === "processData" && data && data.classes) {
-    const processedData = data.classes as UniversityCourseResponse[];
+  } else if (action === "processData" && data) {
+    const processedData = data as UniversityCourseResponse[];
     if (cacheEnabled) {
       await db.put("coursesSearches", {
         url: `${university}-${params.subject}-${params.searchTerm}`,

@@ -113,6 +113,7 @@ const SearchPage = () => {
   const [performSearch, setPerformSearch] = useState(false);
   const [fetchingAvailableSubjectCourses, setFetchingAvailableSubjectCourses] =
     useState(false);
+  const [fetchProgress, setFetchProgress] = useState(0);
 
   const [subject, setSubject] = useState<string[]>([]);
   const [courseCatalogNum, setCourseCatalogNum] = useState<string[]>([]);
@@ -178,11 +179,25 @@ const SearchPage = () => {
     courseProcessorWorker.onmessage = async (event) => {
       const { action, url, searchParams } = event.data;
       if (action === "IPC_REQUEST") {
-        const result = await window.electronAPI.fetchCourses(url);
+        const { success, data, error } =
+          await window.electronAPI.fetchCourses(url);
+
+        if (success === false) {
+          toaster.create({
+            type: "error",
+            title: "Error fetching course data",
+            description: error || "An unknown error occurred.",
+            duration: 4000,
+          });
+          setPerformSearch(false);
+          setFetchingAvailableSubjectCourses(false);
+          return;
+        }
+
         courseProcessorWorker.postMessage({
           action: "processData",
           url,
-          ...result,
+          data,
           params: searchParams,
           forSearch: performSearch,
           university: university,
@@ -190,9 +205,12 @@ const SearchPage = () => {
           ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
         }); // send the data to the worker for processing
       }
+
       if (action === "IPC_RESPONSE") {
         // eslint-disable-next-line prefer-const
         let { success, data } = event.data;
+
+
         if (performSearch) {
           if (instructorScore && instructorScore !== "") {
             const score = parseFloat(instructorScore);
@@ -566,6 +584,15 @@ const SearchPage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const removeListener = window.electronAPI.onFetchProgress((_event: unknown, progress: number) => {
+      setFetchProgress(Math.round(progress * 100));
+    });
+    return () => {
+      removeListener();
+    }
+  }, []);
+
   const handleCourseAttributesChange = React.useCallback(
     (value: string[]) => setCourseAttributes(value),
     [],
@@ -648,7 +675,7 @@ const SearchPage = () => {
   return (
     <>
       {performSearch ? (
-        <Loading message="Searching for courses..." />
+        <Loading message={`Searching for courses... ${fetchProgress}%`} />
       ) : (
         <>
           <div

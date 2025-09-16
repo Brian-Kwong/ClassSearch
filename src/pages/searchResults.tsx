@@ -20,6 +20,7 @@ import {
 } from "../components/rateMyProfessorFetcher";
 import { sortByList } from "../components/settingOptions";
 import ClassInfoCard from "../components/ui/classInfoCard";
+import Loading from "../components/ui/loading";
 import Selector from "../components/ui/selector";
 import sortCoursesBy from "../components/sortBy";
 import styles from "../css-styles/searchResults.module.css";
@@ -72,7 +73,7 @@ const SearchResultsPage = () => {
 
   useEffect(() => {
     const fetchIcons = async () => {
-      if (!modelLoaded || !searchResults) return;
+      if (!modelLoaded || !searchResults || !Array.isArray(searchResults)) return;
       try {
         const courses = searchResults.map((course) => ({
           // Removes all Roman numerical suffixes from the description
@@ -93,7 +94,7 @@ const SearchResultsPage = () => {
   }, [modelLoaded, searchResults]);
 
   useEffect(() => {
-    if (sortBy && searchResults) {
+    if (sortBy && searchResults && Array.isArray(searchResults)) {
       const sorted = sortCoursesBy(
         searchResults,
         teacherRatingsList || new Map(),
@@ -108,7 +109,7 @@ const SearchResultsPage = () => {
   }, [sortBy]);
 
   useEffect(() => {
-    if (searchResults) {
+    if (searchResults && Array.isArray(searchResults)) {
       const totalPages = Math.ceil(searchResults.length / resultsPerPage);
       if (currentPage > totalPages) {
         setCurrentPage(totalPages);
@@ -123,100 +124,102 @@ const SearchResultsPage = () => {
   }, [searchResults, currentPage, resultsPerPage]);
 
   return (
-    <Stack height={"100vh"}>
-      <HStack
-        gap={{
-          base: 5,
-        }}
-        justifyContent={"space-between"}
-        flexWrap={"wrap"}
-        height={"fit-content"}
-      >
-        {searchResults ? (
-          <Stack alignItems={"flex-start"} gap={0}>
-            <Text fontSize="2xl" fontWeight="bold">
-              Search Results
-            </Text>
-            <Text fontSize="md" color="gray.500">
-              {searchResults.length} results found
-            </Text>
-          </Stack>
-        ) : null}
-        <Group
-          align={{ base: "space-between", md: "center" }}
-          width={{ base: "100%", md: "fit-content" }}
-          gap={2}
+    searchOptions && Array.isArray(searchResults) && icons.length === searchResults.length && teacherRatingsList ? (
+      <Stack height={"100vh"}>
+        <HStack
+          gap={{
+            base: 5,
+          }}
+          justifyContent={"space-between"}
+          flexWrap={"wrap"}
+          height={"fit-content"}
         >
-          <Selector
-            selectedValue={sortBy}
-            setSelectedValue={setSortBy}
-            options={sortByList}
-          />
-          <Button
-            colorPalette="brand"
-            onClick={() => {
-              navigate(
-                `/search?university=${university}&latestHistory=${true}`,
-                {
-                  state: { searchOptions },
-                },
-              );
-            }}
+            <Stack alignItems={"flex-start"} gap={0}>
+              <Text fontSize="2xl" fontWeight="bold">
+                Search Results
+              </Text>
+              <Text fontSize="md" color="gray.500">
+                {searchResults.length} results found
+              </Text>
+            </Stack>
+          <Group
+            align={{ base: "space-between", md: "center" }}
+            width={{ base: "100%", md: "fit-content" }}
+            gap={2}
           >
-            Revise Search Parameters
-          </Button>
-        </Group>
-      </HStack>
-      <Virtuoso
-        data={pagedResults}
-        className={styles.searchResultsList}
-        itemContent={(index, course) => (
-          <ClassInfoCard
-            key={index}
-            university={university || ""}
-            course={course}
-            iconName={icons.at(index) || { lib: "mdi", name: "book" }}
-            professorRating={
-              teacherRatingsList
-                ? findClosestTeacherRating(
-                    teacherRatingsList,
-                    course.meetings[0]?.instructor || "",
-                  )
-                : undefined
-            }
-          />
-        )}
-      />
-      <Pagination.Root
-        height={"120px"}
-        count={searchResults.length}
-        pageSize={resultsPerPage}
-        defaultPage={1}
-        onPageChange={(page) => setCurrentPage(page.page)}
-      >
-        <ButtonGroup variant="ghost" size="sm">
-          <Pagination.PrevTrigger asChild>
-            <IconButton>
-              <LuChevronLeft />
-            </IconButton>
-          </Pagination.PrevTrigger>
-
-          <Pagination.Items
-            render={(page) => (
-              <IconButton variant={{ base: "ghost", _selected: "outline" }}>
-                {page.value}
+            <Selector
+              selectedValue={sortBy}
+              setSelectedValue={setSortBy}
+              options={sortByList}
+            />
+            <Button
+              colorPalette="brand"
+              onClick={() => {
+                navigate(
+                  `/search?university=${university}&latestHistory=${true}`,
+                  {
+                    state: { searchOptions },
+                  },
+                );
+              }}
+            >
+              Revise Search Parameters
+            </Button>
+          </Group>
+        </HStack>
+        <Virtuoso
+          data={pagedResults}
+          className={styles.searchResultsList}
+          itemContent={(index, course) => (
+            <ClassInfoCard
+              key={index}
+              university={university || ""}
+              course={course}
+              iconName={icons.at(index) || { lib: "mdi", name: "book" }}
+              professorRating={
+                teacherRatingsList
+                  ? findClosestTeacherRating(
+                      teacherRatingsList,
+                      course.meetings[0]?.instructor || "",
+                    )
+                  : undefined
+              }
+            />
+          )}
+        />
+        <Pagination.Root
+          height={"120px"}
+          count={searchResults.length}
+          pageSize={resultsPerPage}
+          defaultPage={1}
+          onPageChange={(page) => setCurrentPage(page.page)}
+        >
+          <ButtonGroup variant="ghost" size="sm">
+            <Pagination.PrevTrigger asChild>
+              <IconButton>
+                <LuChevronLeft />
               </IconButton>
-            )}
-          />
+            </Pagination.PrevTrigger>
 
-          <Pagination.NextTrigger asChild>
-            <IconButton>
-              <LuChevronRight />
-            </IconButton>
-          </Pagination.NextTrigger>
-        </ButtonGroup>
-      </Pagination.Root>
-    </Stack>
+            <Pagination.Items
+              render={(page) => (
+                <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                  {page.value}
+                </IconButton>
+              )}
+            />
+
+            <Pagination.NextTrigger asChild>
+              <IconButton>
+                <LuChevronRight />
+              </IconButton>
+            </Pagination.NextTrigger>
+          </ButtonGroup>
+        </Pagination.Root>
+      </Stack>
+    ) : (
+      <Loading message="Loading search results..." /> 
+    )
   );
 
 

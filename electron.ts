@@ -11,7 +11,6 @@ import { makeLoginWindow } from "./src/components/loginWindow.js";
 import type { Session } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
-import { error } from "console";
 import { Worker } from "worker_threads";
 import { pipeline, env } from "@huggingface/transformers";
 import fs from "fs";
@@ -28,11 +27,12 @@ const dbPath = app.isPackaged
 
 let iconWorker: Worker;
 let rmpWorker: Worker;
+let mainWindow: BrowserWindow;
 
 // Ensure the data directory exists
 const createNewApp = () => {
   try {
-    const mainWindow = new BrowserWindow({
+     mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
       titleBarOverlay: {
         color: "#2c3e50",
@@ -90,91 +90,114 @@ ipcMain.handle(`firstLogin`, async (_event, params: { url: string }) => {
   return result;
 });
 
-ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
-  // Handles the primary search request here
-  const cookies = await persistentSession?.cookies.get({});
-  try {
-    if (cookies && cookies.length > 0) {
-      for (let i = 0; i < 5; i++) {
-        const psTokens = cookies
-          .map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join("; ");
-        const searchResults = await fetch(`${params.url}&page=1`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Cookie: psTokens,
-          },
-        });
-        if (searchResults.ok) {
-          try {
-            const data = await searchResults.json();
-            if (data) {
-              // Check for additional pages
-              if (data.pageCount && data.pageCount > 1) {
-                for (let i = 2; i <= data.pageCount; i++) {
-                  try {
-                    const pageResults = await fetch(`${params.url}&page=${i}`, {
-                      method: "GET",
-                      headers: {
-                        "Content-Type": "application/json",
-                        Cookie: psTokens,
-                      },
-                    });
-                    if (pageResults.ok) {
-                      const pageData = await pageResults.json();
-                      if (pageData) {
-                        data.classes.push(...pageData.classes);
-                      }
-                    } else {
-                      console.error(
-                        "Error occurred while fetching page results:",
-                        pageResults.statusText,
-                      );
-                    }
-                  } catch {
-                    i = i - 1;
-                    continue;
-                  }
-                }
-              }
-              return { success: true, data 
-            }
-          } catch {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            continue;
+const getCookies = async (persistentSession: Session | null) => {
+  if (persistentSession) {
+    const cookies = await persistentSession.cookies.get({});
+    const psTokens = cookies
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+    return psTokens;
+  }
+  return null;
+
+
+const fetchPage = async (
+  url: string,
+  psTokens: string,
+  type: "Search" | "Detail" = "Search",
+  pageNum: number = 1,
+) => {
+  let page;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      page = await fetch(`${url}&page=${pageNum}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: psTokens,
+        },
+      });
+      if (page.ok) {
+        const data = await page.json();
+        if (data) {
+          if (type === "Search") {
+            return {
+              success: true,
+              numberOfPages: data.pageCount || 1,
+              classes: data.classes || [],
+            
+          } else {
+            return { success: true, data 
           }
-        } else {
-          break;
         }
       }
-      console.warn(
-        "Error occurred during search request: Trying with new login",
-        error,
-      );
-      try {
-        const result = await makeLoginWindow(params.url, persistentSession!);
-        return result;
-      } catch (error) {
-        console.error("Error occurred during login:", error);
-        return {
-          success: false,
-          error: "An error occurred during the login process.",
-        
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        try {
+          page = await makeLoginWindow(url, persistentSession!);
+          if (page) {
+            if (type === "Search") {
+              page = page as unknown as {
+                pageCount: number;
+                classes: unknown[];
+              
+              return {
+                success: true,
+                numberOfPages: page.pageCount || 1,
+                classes: page.classes,
+              
+            } else {
+              return { success: true, data: page 
+            }
+          }
+        } catch {
+          return { success: false, numberOfPages: 0, classes: null 
+        }
       }
-    } else {
-      console.warn("No cookies found, initiating login process.");
-      // Invoke first login to maybe resign in the user?
-      const result = await makeLoginWindow(params.url, persistentSession!);
-      return result;
     }
-  } catch (error) {
-    console.error("An unknown error occurred during search request:", error);
-    return {
-      success: false,
-      error: "An error occurred during the search process.",
-    
+    await new Promise((res) => setTimeout(res, attempt * 1000)); // Exponential backoff
   }
+  return { success: false, numberOfPages: 0, classes: null 
+
+
+ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
+  // Handles the primary search request here
+  const cookies = await getCookies(persistentSession);
+  if (!cookies) {
+    console.error("No cookies found");
+    return { success: false, error: "No cookies found" 
+  }
+  const firstPageResult = await fetchPage(params.url, cookies);
+  if (!firstPageResult.success) {
+    return { success: false, error: "Failed to fetch the first page" 
+  }
+  const allClasses = [...firstPageResult.classes];
+  const totalPages = firstPageResult.numberOfPages;
+  for (let page = 2; page <= totalPages; page++) {
+    mainWindow.webContents.send("fetchProgress", page / totalPages);
+    const pageResult = await fetchPage(params.url, cookies, "Search", page);
+    if (pageResult.success && pageResult.classes) {
+      allClasses.push(...pageResult.classes);
+    } else {
+      console.error(`Failed to fetch page ${page}`);
+      return { success: false, error: `Failed to fetch page ${page}` 
+    }
+  }
+  return { success: true, data: allClasses 
+});
+
+ipcMain.handle("detailRequest", async (_event, params: { url: string }) => {
+  // Handles the primary search request here
+  const cookies = await getCookies(persistentSession);
+  if (!cookies) {
+    console.error("No cookies found");
+    return { success: false, error: "No cookies found" 
+  }
+  const detailResult = await fetchPage(params.url, cookies, "Detail");
+  if (!detailResult.success) {
+    return { success: false, error: "Failed to fetch detail data" 
+  }
+  return { success: true, data: detailResult.data 
 });
 
 ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {

@@ -96,6 +96,13 @@ const Settings = createOverlay((props) => {
                                   {
                                     /* Placeholder for setting control (e.g., switch, dropdown) */
                                     createSettingControl(
+                                      theme === "system"
+                                        ? resolvedTheme === "dark"
+                                          ? "dark"
+                                          : "light"
+                                        : theme === "dark"
+                                          ? "dark"
+                                          : "light",
                                       option.settingType,
                                       option.setting,
                                       userSettings,
@@ -103,6 +110,8 @@ const Settings = createOverlay((props) => {
                                       option?.options || undefined,
                                       option.validationFn || undefined,
                                       option.errorMessage || undefined,
+                                      option.actionFn || undefined,
+                                      option.confirm || false,
                                     )
                                   }
                                 </Stack>

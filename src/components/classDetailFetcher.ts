@@ -22,7 +22,7 @@ const fetchClassDetails = async (
       }
     }
     const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${institutionId}&term=${term}&class_nbr=${classNbr}`;
-    const classDetails = await window.electronAPI.fetchCourses(url);
+    const classDetails = await window.electronAPI.fetchCourseDetails(url);
     if (classDetails && classDetails.data) {
       db.put("classDetails", {
         classNbr,
