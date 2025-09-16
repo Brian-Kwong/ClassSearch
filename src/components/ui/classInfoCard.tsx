@@ -49,24 +49,27 @@ const ClassInfoCard = ({
   const getClassDetailsDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const loadCourseDetails = React.useCallback(() => {
-    getClassDetailsDebounceRef.current = setTimeout(async () => {
-      if (fetchedDetails) return;
-      if (fetchingDetails) return;
-      setFetchingDetails(true);
-      if (!university || !searchOptions || !searchQueryParams) return;
-      const details = await fetchClassDetails(
-        university,
-        searchOptions.class_search_fields[0].INSTITUTION,
-        searchQueryParams.searchTerm[0],
-        course.class_nbr,
-        parseInt(settings["Class Details Cache Duration"]) || 1,
-      );
-      if (details) {
-        setFetchedDetails(true);
-        setFetchingDetails(false);
-        setCourseDetails(details);
-      }
-    }, 500); // 500ms debounce
+    getClassDetailsDebounceRef.current = setTimeout(
+      async () => {
+        if (fetchedDetails) return;
+        if (fetchingDetails) return;
+        setFetchingDetails(true);
+        if (!university || !searchOptions || !searchQueryParams) return;
+        const details = await fetchClassDetails(
+          university,
+          searchOptions.class_search_fields[0].INSTITUTION,
+          searchQueryParams.searchTerm[0],
+          course.class_nbr,
+          parseInt(settings["Class Details Cache Duration"]) || 1,
+        );
+        if (details) {
+          setFetchedDetails(true);
+          setFetchingDetails(false);
+          setCourseDetails(details);
+        }
+      },
+      settings["Prefetch Details when Hovering"] === "true" ? 500 : 0,
+    );
     return () => {
       if (getClassDetailsDebounceRef.current) {
         clearTimeout(getClassDetailsDebounceRef.current);
@@ -92,8 +95,21 @@ const ClassInfoCard = ({
             width={"100%"}
             boxShadow={isDarkMode ? "dark-lg" : "lg"}
             background={isDarkMode ? "gray.700" : "gray.100"}
-            onMouseEnter={loadCourseDetails}
-            onMouseLeave={clearClassDetailsDebounce}
+            onMouseEnter={() => {
+              if (settings["Prefetch Details when Hovering"] === "true") {
+                loadCourseDetails();
+              }
+            }}
+            onMouseLeave={() => {
+              if (settings["Prefetch Details when Hovering"] === "true") {
+                clearClassDetailsDebounce();
+              }
+            }}
+            onClick={() => {
+              if (settings["Prefetch Details when Hovering"] === "false") {
+                loadCourseDetails();
+              }
+            }}
           >
             <Card.Body gap={4}>
               <Card.Title

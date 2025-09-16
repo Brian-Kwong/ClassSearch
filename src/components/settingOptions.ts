@@ -8,6 +8,10 @@ export type SettingOption = {
   errorMessage?: string;
   actionFn?: () => void;
   options?: ListCollection;
+  requires?: {
+    setting: string;
+    value: string;
+  }[];
 
 
 const defaultSettings: { [key: string]: string } = {
@@ -17,8 +21,9 @@ const defaultSettings: { [key: string]: string } = {
   "Class Details Cache Duration": "1",
   "Max Number of Search History Entries": "1024",
   "Results Per Page": "20",
-  "Default Sort Order": "availability",
+  "Default Sort Order": "courseNumber",
   "Prefetch Details when Hovering": "true",
+  "Prefetch Delay (ms)": "300",
   "Dark Mode": "system",
   "Check for Updates on Startup": "true",
 
@@ -42,6 +47,7 @@ const cacheSettingsOptions: SettingOption[] = [
       }
     },
     errorMessage: "Cache duration must be between 0 and 1440 minutes.",
+    requires: [{ setting: "Enable Caching", value: "true" }],
   },
   {
     setting: "Professor Ratings Cache Duration",
@@ -56,6 +62,7 @@ const cacheSettingsOptions: SettingOption[] = [
       }
     },
     errorMessage: "Cache duration must be between 0 and 365 days.",
+    requires: [{ setting: "Enable Caching", value: "true" }],
   },
   {
     setting: "Class Details Cache Duration",
@@ -70,6 +77,7 @@ const cacheSettingsOptions: SettingOption[] = [
       }
     },
     errorMessage: "Cache duration must be between 0 and 14 days.",
+    requires: [{ setting: "Enable Caching", value: "true" }],
   },
   {
     setting: "Max Number of Search History Entries",
@@ -83,7 +91,8 @@ const cacheSettingsOptions: SettingOption[] = [
         return false;
       }
     },
-    errorMessage: "Cache duration must be between 0 and 43200 entries.",
+    errorMessage:
+      "Number of search history entries must be between 0 and 43200.",
   },
   {
     setting: "Clear Cache",
@@ -118,7 +127,7 @@ const resultsPerPageOptions = createListCollection({
     { label: "100", value: "100" },
     { label: "200", value: "200" },
     { label: "500", value: "500" },
-    { label: "All", value: "-1" },
+    { label: "All", value: String(Number.MAX_SAFE_INTEGER) },
   ],
 });
 
@@ -149,6 +158,21 @@ const viewSettingsOptions: SettingOption[] = [
     description:
       "Enable or disable prefetching of course details when hovering over a course in the search results.",
     settingType: "boolean",
+  },
+  {
+    setting: "Prefetch Delay (ms)",
+    description:
+      "Set the delay in milliseconds before prefetching course details when hovering. This helps prevent excessive requests when quickly moving the cursor over multiple courses.",
+    settingType: "number",
+    validationFn: (value: string) => {
+      try {
+        return parseInt(value) >= 0 && parseInt(value) <= 5000;
+      } catch {
+        return false;
+      }
+    },
+    errorMessage: "Prefetch delay must be between 0 and 5000 milliseconds.",
+    requires: [{ setting: "Prefetch Details when Hovering", value: "true" }],
   },
 ];
 

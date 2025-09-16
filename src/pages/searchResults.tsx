@@ -1,5 +1,15 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button, HStack, Stack, Text, Group } from "@chakra-ui/react";
+import {
+  Button,
+  HStack,
+  Stack,
+  Text,
+  Group,
+  Pagination,
+  ButtonGroup,
+  IconButton,
+} from "@chakra-ui/react";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useSearchContext } from "../components/context/contextFactory";
 import { useEffect, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
@@ -8,7 +18,7 @@ import {
   getProfessorRatings,
   findClosestTeacherRating,
 } from "../components/rateMyProfessorFetcher";
-import { sortByList } from "../components/ui/settingOptions";
+import { sortByList } from "../components/settingOptions";
 import ClassInfoCard from "../components/ui/classInfoCard";
 import Selector from "../components/ui/selector";
 import sortCoursesBy from "../components/sortBy";
@@ -32,6 +42,9 @@ const SearchResultsPage = () => {
     string,
     TeacherRatings
   > | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagedResults, setPagedResults] = useState(searchResults || []);
+  const resultsPerPage = parseInt(settings["Results Per Page"]) || 10;
 
   useEffect(() => {
     async function loadModel() {
@@ -48,6 +61,7 @@ const SearchResultsPage = () => {
   useEffect(() => {
     getProfessorRatings(
       university || "",
+      settings["Enable Caching"] === "true",
       parseInt(settings["Professor Ratings Cache Duration"]) || 1,
     ).then((ratings) => {
       if (ratings) {
@@ -93,14 +107,30 @@ const SearchResultsPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy]);
 
+  useEffect(() => {
+    if (searchResults) {
+      const totalPages = Math.ceil(searchResults.length / resultsPerPage);
+      if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
+      } else if (currentPage < 1) {
+        setCurrentPage(1);
+      } else {
+        const startIdx = (currentPage - 1) * resultsPerPage;
+        const endIdx = startIdx + resultsPerPage;
+        setPagedResults(searchResults.slice(startIdx, endIdx));
+      }
+    }
+  }, [searchResults, currentPage, resultsPerPage]);
+
   return (
-    <Stack>
+    <Stack height={"100vh"}>
       <HStack
         gap={{
           base: 5,
         }}
         justifyContent={"space-between"}
         flexWrap={"wrap"}
+        height={"fit-content"}
       >
         {searchResults ? (
           <Stack alignItems={"flex-start"} gap={0}>
@@ -112,7 +142,11 @@ const SearchResultsPage = () => {
             </Text>
           </Stack>
         ) : null}
-        <Group>
+        <Group
+          align={{ base: "space-between", md: "center" }}
+          width={{ base: "100%", md: "fit-content" }}
+          gap={2}
+        >
           <Selector
             selectedValue={sortBy}
             setSelectedValue={setSortBy}
@@ -134,7 +168,7 @@ const SearchResultsPage = () => {
         </Group>
       </HStack>
       <Virtuoso
-        data={searchResults}
+        data={pagedResults}
         className={styles.searchResultsList}
         itemContent={(index, course) => (
           <ClassInfoCard
@@ -153,6 +187,35 @@ const SearchResultsPage = () => {
           />
         )}
       />
+      <Pagination.Root
+        height={"120px"}
+        count={searchResults.length}
+        pageSize={resultsPerPage}
+        defaultPage={1}
+        onPageChange={(page) => setCurrentPage(page.page)}
+      >
+        <ButtonGroup variant="ghost" size="sm">
+          <Pagination.PrevTrigger asChild>
+            <IconButton>
+              <LuChevronLeft />
+            </IconButton>
+          </Pagination.PrevTrigger>
+
+          <Pagination.Items
+            render={(page) => (
+              <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                {page.value}
+              </IconButton>
+            )}
+          />
+
+          <Pagination.NextTrigger asChild>
+            <IconButton>
+              <LuChevronRight />
+            </IconButton>
+          </Pagination.NextTrigger>
+        </ButtonGroup>
+      </Pagination.Root>
     </Stack>
   );
 

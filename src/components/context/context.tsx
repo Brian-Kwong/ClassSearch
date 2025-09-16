@@ -5,7 +5,7 @@ import {
   UserSearchRequestTypes,
 } from "../types";
 import { searchDataContext } from "./contextFactory";
-import { defaultSettings } from "../ui/settingOptions";
+import { defaultSettings } from "../settingOptions";
 
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   const [searchOptions, setSearchOptions] = useState<SearchParamJSON>(
@@ -89,6 +89,14 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     window.localStorage.setItem("settings", JSON.stringify(settings));
+
+    // Update sortBy setting if changed
+    if (settings["Default Sort Order"] !== sortBy) {
+      setSortBy(settings["Default Sort Order"]);
+    }
+
+    // Only needs to update when setting changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
   useEffect(() => {

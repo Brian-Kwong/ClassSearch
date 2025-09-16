@@ -8,10 +8,10 @@ import {
   Portal,
   createOverlay,
 } from "@chakra-ui/react";
-import { settingsCategories } from "./settingOptions";
+import { settingsCategories } from "../settingOptions";
 import { useSearchContext } from "../context/contextFactory";
 import { useTheme } from "next-themes";
-import { createSettingControl } from "../settingComps";
+import { createSettingControl } from "./settingComps";
 import React from "react";
 import styles from "../../css-styles/settingsPage.module.css";
 
@@ -67,42 +67,46 @@ const Settings = createOverlay((props) => {
                       </Accordion.ItemTrigger>
                       <Accordion.ItemContent>
                         <Stack gap={4} mt={2} mb={4}>
-                          {options.map((option) => (
-                            <HStack
-                              key={option.setting}
-                              justifyContent={"space-between"}
-                              width="100%"
-                            >
-                              <Stack width={{ base: "100%", md: "70%" }}>
-                                <Text fontSize="md" textAlign={"left"}>
-                                  {option.setting}
-                                </Text>
-                                <Text
-                                  fontStyle="sm"
-                                  color={"gray.500"}
-                                  textAlign={"left"}
-                                >
-                                  {option.description}
-                                </Text>
-                              </Stack>
-                              <Stack
-                                width={{ base: "100%", md: "30%" }}
-                                alignItems={"flex-end"}
-                                padding={1}
+                          {options.map((option) =>
+                            option.requires?.some(
+                              (req) => userSettings[req.setting] !== req.value,
+                            ) ? null : (
+                              <HStack
+                                key={option.setting}
+                                justifyContent={"space-between"}
+                                width="100%"
                               >
-                                {
-                                  /* Placeholder for setting control (e.g., switch, dropdown) */
-                                  createSettingControl(
-                                    option.settingType,
-                                    option.setting,
-                                    userSettings,
-                                    setUserSettings,
-                                    option?.options || undefined,
-                                  )
-                                }
-                              </Stack>
-                            </HStack>
-                          ))}
+                                <Stack width={{ base: "100%", md: "70%" }}>
+                                  <Text fontSize="md" textAlign={"left"}>
+                                    {option.setting}
+                                  </Text>
+                                  <Text
+                                    fontStyle="sm"
+                                    color={"gray.500"}
+                                    textAlign={"left"}
+                                  >
+                                    {option.description}
+                                  </Text>
+                                </Stack>
+                                <Stack
+                                  width={{ base: "100%", md: "30%" }}
+                                  alignItems={"flex-end"}
+                                  padding={1}
+                                >
+                                  {
+                                    /* Placeholder for setting control (e.g., switch, dropdown) */
+                                    createSettingControl(
+                                      option.settingType,
+                                      option.setting,
+                                      userSettings,
+                                      setUserSettings,
+                                      option?.options || undefined,
+                                    )
+                                  }
+                                </Stack>
+                              </HStack>
+                            ),
+                          )}
                         </Stack>
                       </Accordion.ItemContent>
                     </Accordion.Item>

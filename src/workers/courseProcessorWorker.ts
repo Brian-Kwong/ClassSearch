@@ -182,7 +182,16 @@ const isSubsetOfParams = (
 
 
 self.onmessage = async (event) => {
-  const { action, url, data, params, university, forSearch, ttl } = event.data;
+  const {
+    action,
+    url,
+    data,
+    params,
+    university,
+    forSearch,
+    cacheEnabled,
+    ttl,
+  } = event.data;
   if (action === "fetchCourses") {
     const cached = await db.get(
       "coursesSearches",
@@ -190,14 +199,10 @@ self.onmessage = async (event) => {
     );
     if (
       cached &&
+      cacheEnabled &&
       Date.now() - cached.timestamp < minute * ttl &&
       isSubsetOfParams(params, cached.params)
     ) {
-      if (forSearch)
-        await db.put("searchHistory", {
-          timestamp: Date.now(),
-          params: params,
-        });
       self.postMessage({
         action: "IPC_RESPONSE",
         success: true,
@@ -217,18 +222,14 @@ self.onmessage = async (event) => {
     self.postMessage({ action: "IPC_REQUEST", url, searchParams: params });
   } else if (action === "processData" && data && data.classes) {
     const processedData = data.classes as UniversityCourseResponse[];
-    if (forSearch) {
-      await db.put("searchHistory", {
+    if (cacheEnabled) {
+      await db.put("coursesSearches", {
+        url: `${university}-${params.subject}-${params.searchTerm}`,
         timestamp: Date.now(),
+        data: processedData,
         params: params,
       });
     }
-    await db.put("coursesSearches", {
-      url: `${university}-${params.subject}-${params.searchTerm}`,
-      timestamp: Date.now(),
-      data: processedData,
-      params: params,
-    });
     self.postMessage({
       action: "IPC_RESPONSE",
       searchParams: params,

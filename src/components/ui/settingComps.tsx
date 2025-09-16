@@ -1,8 +1,8 @@
 import { Button, ListCollection, Switch } from "@chakra-ui/react";
-import InputBox from "./ui/inputBox";
-import Selector from "./ui/selector";
+import InputBox from "./inputBox";
+import Selector from "./selector";
 import React from "react";
-import styles from "../css-styles/settingsPage.module.css";
+import styles from "../../css-styles/settingsPage.module.css";
 
 export const createSettingControl = (
   type: string,
@@ -73,7 +73,7 @@ export const createSettingControl = (
             // Placeholder for action function
           }}
         >
-          Execute
+          {settingKey}
         </Button>
       );
     default:

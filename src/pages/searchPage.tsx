@@ -186,6 +186,7 @@ const SearchPage = () => {
           params: searchParams,
           forSearch: performSearch,
           university: university,
+          cacheEnabled: settings["Enable Caching"] === "true",
           ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
         }); // send the data to the worker for processing
       }
@@ -193,7 +194,6 @@ const SearchPage = () => {
         // eslint-disable-next-line prefer-const
         let { success, data } = event.data;
         if (performSearch) {
-          console.log("Successfully fetched and processed data.", data);
           if (instructorScore && instructorScore !== "") {
             const score = parseFloat(instructorScore);
             data = await getProfessorRatings(university || "").then(
@@ -266,7 +266,6 @@ const SearchPage = () => {
       }
       return;
     }
-    console.log("Submitting search with params:");
     const searchParams = {
       subject: subject,
       courseCatalogNum: courseCatalogNum,
@@ -288,6 +287,7 @@ const SearchPage = () => {
       university,
       params: searchParams,
       forSearch: performSearch,
+      cacheEnabled: settings["Enable Caching"] === "true",
       ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
     });
     if (performSearch) {

@@ -6,6 +6,7 @@ const db = createAndOpenDB;
 
 export const getProfessorRatings = async (
   university: string,
+  cacheEnabled: boolean = true,
   ttlDays: number = 1,
 ) => {
   if (!university) return;
@@ -15,17 +16,20 @@ export const getProfessorRatings = async (
     let rmpInfo = null;
     if (
       cached &&
+      cacheEnabled &&
       Date.now() - cached.timestamp < days * ttlDays &&
       cached.ratings
     ) {
       rmpInfo = { data: new Map(Object.entries(cached.ratings)) 
     } else {
       rmpInfo = await window.electronAPI.getRMPInfo(university);
-      db.put("teacherRatings", {
-        school: university,
-        timestamp: Date.now(),
-        ratings: rmpInfo.data ? Object.fromEntries(rmpInfo.data) : {},
-      });
+      if (cacheEnabled && rmpInfo && rmpInfo.data) {
+        await db.put("teacherRatings", {
+          school: university,
+          timestamp: Date.now(),
+          ratings: rmpInfo.data ? Object.fromEntries(rmpInfo.data) : {},
+        });
+      }
     }
     if (rmpInfo) {
       return rmpInfo.data;

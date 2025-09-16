@@ -1,5 +1,9 @@
+body {
+  overflow-y: hidden;
+}
+
 .searchResultsList {
-  height: 80vh !important;
   scrollbar-width: none;
-  min-width: 70vw;
+  min-width: 80vw;
+  flex-grow: 1;
 }
