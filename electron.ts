@@ -51,6 +51,7 @@ const createNewApp = () => {
         devTools: true,
         enableBlinkFeatures: "EnableWebWorkerInspection",
       },
+      transparent: true,
     });
 
     persistentSession = session.fromPartition("persist:login");
