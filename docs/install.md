@@ -11,7 +11,7 @@ The application is distributed as a desktop application distributed via GitHub r
 
 ## macOS
 
-1. Download the latest `.dmg` installer from the [releases page](https://github.com/tigerplayspc/CSUClassSearch/releases).
+1. Download the latest `.dmg` installer from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
 2. Open the downloaded `.dmg` file.
 3. Drag the application to your Applications folder.
 4. Open Finder and navigate to the Applications folder to find the application or find the application in Launchpad (Apps if using macOS 26 Tahoe).
@@ -20,7 +20,7 @@ The application is distributed as a desktop application distributed via GitHub r
 
 ## Linux
 
-1. Download the latest `.AppImage` file from the [releases page](https://github.com/tigerplayspc/CSUClassSearch/releases).
+1. Download the latest `.AppImage` file from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
 2. Make the `.AppImage` file executable by running the following command in the terminal:
    ```bash
    chmod +x /path/to/your/file.AppImage
