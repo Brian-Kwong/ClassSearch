@@ -22,11 +22,11 @@ export default defineConfig({
     format: "es",
   },
   build: {
-    target: 'es2022',
+    target: "es2022",
   },
   esbuild: {
     supported: {
-      'top-level-await': true,
+      "top-level-await": true,
     },
   },
 });
