@@ -37,4 +37,4 @@ Button to clear all cached data immediately. This will remove all cached course 
 
 - **Auto Check for Updates**: When enabled, the application will automatically check for updates on startup. If a new version is available, you will be notified[^1].
 
-[^1]: Automatic updates are not currently supported. You will need to manually download and install the latest version from the [releases page](https://github.com/yourusername/yourrepository/releases).
+[^1]: Automatic updates are not currently supported. You will need to manually download and install the latest version from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).

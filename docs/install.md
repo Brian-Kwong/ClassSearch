@@ -1,10 +1,10 @@
 # Installation
 
-The application is distributed as a desktop application distributed via GitHub releases. Please navigate to the [releases page](https://github.com/tigerplayspc/CSUClassSearch/releases) to download the latest version.
+The application is distributed as a desktop application distributed via GitHub releases. Please navigate to the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases) to download the latest version.
 
 ## Windows
 
-1. Download the latest `.exe` installer from the [releases page](https://github.com/tigerplayspc/CSUClassSearch/releases).
+1. Download the latest `.exe` installer from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
 2. Run the installer wizard.
 3. When prompted by Windows Defender SmartScreen, click "More Info" and then "Run Anyway".
 4. Follow the prompts in the installer to complete the installation.
