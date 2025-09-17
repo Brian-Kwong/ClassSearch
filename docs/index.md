@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Class Search"
   text: "Easy Minimal Powerful Class Search"
-  image: ./assets/icon.png
+  image: "icon.png"
   actions:
     - theme: brand
       text: Getting Started
