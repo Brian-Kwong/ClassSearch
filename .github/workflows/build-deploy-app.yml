@@ -1,6 +1,9 @@
 name: Build/release Electron app to GitHub Releases
 
-on: push
+on:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   release:
