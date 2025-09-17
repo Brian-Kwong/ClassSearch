@@ -32,7 +32,7 @@ let mainWindow: BrowserWindow;
 // Ensure the data directory exists
 const createNewApp = () => {
   try {
-     mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
       titleBarOverlay: {
         color: "#2c3e50",

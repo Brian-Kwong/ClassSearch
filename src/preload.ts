@@ -18,12 +18,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("performIconSearch", { query }),
     setup: () => ipcRenderer.invoke("loadModel"),
   },
-  onFetchProgress: (callback: (event: unknown, progress: number) => void) =>
-    {
-    const listener = (_event: unknown, progress: number) => callback(_event, progress);
+  onFetchProgress: (callback: (event: unknown, progress: number) => void) => {
+    const listener = (_event: unknown, progress: number) =>
+      callback(_event, progress);
     ipcRenderer.on("fetchProgress", listener);
-    return () => { ipcRenderer.removeListener("fetchProgress", listener); }
-    },
+    return () => {
+      ipcRenderer.removeListener("fetchProgress", listener);
+    
+  },
 });
 
 if (process.contextIsolated === false) {

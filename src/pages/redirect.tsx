@@ -32,7 +32,9 @@ declare global {
         }) => Promise<{ lib: string; name: string }[]>;
         setup: () => Promise<void>;
       
-      onFetchProgress: (callback: (event: unknown, progress: number) => void) => () => void;
+      onFetchProgress: (
+        callback: (event: unknown, progress: number) => void,
+      ) => () => void;
     
   }
 }

@@ -210,7 +210,6 @@ const SearchPage = () => {
         // eslint-disable-next-line prefer-const
         let { success, data } = event.data;
 
-
         if (performSearch) {
           if (instructorScore && instructorScore !== "") {
             const score = parseFloat(instructorScore);
@@ -585,12 +584,14 @@ const SearchPage = () => {
   }, []);
 
   useEffect(() => {
-    const removeListener = window.electronAPI.onFetchProgress((_event: unknown, progress: number) => {
-      setFetchProgress(Math.round(progress * 100));
-    });
+    const removeListener = window.electronAPI.onFetchProgress(
+      (_event: unknown, progress: number) => {
+        setFetchProgress(Math.round(progress * 100));
+      },
+    );
     return () => {
       removeListener();
-    }
+    
   }, []);
 
   const handleCourseAttributesChange = React.useCallback(
