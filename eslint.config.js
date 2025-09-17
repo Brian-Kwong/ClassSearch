@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 import eslintPluginSecurity from "eslint-plugin-security";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "docs", "dist-electron"] },
   {
     ...eslintPluginSecurity.configs.recommended,
   },

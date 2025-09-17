@@ -20,7 +20,6 @@ import {
 } from "../components/rateMyProfessorFetcher";
 import { sortByList } from "../components/settingOptions";
 import ClassInfoCard from "../components/ui/classInfoCard";
-import Loading from "../components/ui/loading";
 import Selector from "../components/ui/selector";
 import sortCoursesBy from "../components/sortBy";
 import styles from "../css-styles/searchResults.module.css";
