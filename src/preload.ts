@@ -8,7 +8,8 @@ declare global {
 contextBridge.exposeInMainWorld("electronAPI", {
   platform: process.platform,
   firstLogin: (url: string) => ipcRenderer.invoke("firstLogin", { url }),
-  fetchCourses: (url: string) => ipcRenderer.invoke("searchRequest", { url }),
+  fetchCourses: (url: string, maxEntriesWarning: boolean) =>
+    ipcRenderer.invoke("searchRequest", { url, maxEntriesWarning }),
   fetchCourseDetails: (url: string) =>
     ipcRenderer.invoke("detailRequest", { url }),
   getModelPath: () => ipcRenderer.invoke("getModelPath"),

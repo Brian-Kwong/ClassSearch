@@ -160,31 +160,43 @@ const fetchPage = async (
   return { success: false, numberOfPages: 0, classes: null 
 
 
-ipcMain.handle("searchRequest", async (_event, params: { url: string }) => {
-  // Handles the primary search request here
-  const cookies = await getCookies(persistentSession);
-  if (!cookies) {
-    console.error("No cookies found");
-    return { success: false, error: "No cookies found" 
-  }
-  const firstPageResult = await fetchPage(params.url, cookies);
-  if (!firstPageResult.success) {
-    return { success: false, error: "Failed to fetch the first page" 
-  }
-  const allClasses = [...firstPageResult.classes];
-  const totalPages = firstPageResult.numberOfPages;
-  for (let page = 2; page <= totalPages; page++) {
-    mainWindow.webContents.send("fetchProgress", page / totalPages);
-    const pageResult = await fetchPage(params.url, cookies, "Search", page);
-    if (pageResult.success && pageResult.classes) {
-      allClasses.push(...pageResult.classes);
-    } else {
-      console.error(`Failed to fetch page ${page}`);
-      return { success: false, error: `Failed to fetch page ${page}` 
+ipcMain.handle(
+  "searchRequest",
+  async (_event, params: { url: string; maxEntriesWarning: boolean }) => {
+    // Handles the primary search request here
+    const cookies = await getCookies(persistentSession);
+    if (!cookies) {
+      console.error("No cookies found");
+      return { success: false, error: "No cookies found" 
     }
-  }
-  return { success: true, data: allClasses 
-});
+    const firstPageResult = await fetchPage(params.url, cookies);
+    if (!firstPageResult.success) {
+      return { success: false, error: "Failed to fetch the first page" 
+    }
+    const allClasses = [...firstPageResult.classes];
+    const totalPages = firstPageResult.numberOfPages;
+
+    if (totalPages > 10 && !params.maxEntriesWarning) {
+      return {
+        success: false,
+        error: "Max retries reached",
+        totalPages: totalPages,
+      
+    }
+
+    for (let page = 2; page <= totalPages; page++) {
+      mainWindow.webContents.send("fetchProgress", page / totalPages);
+      const pageResult = await fetchPage(params.url, cookies, "Search", page);
+      if (pageResult.success && pageResult.classes) {
+        allClasses.push(...pageResult.classes);
+      } else {
+        console.error(`Failed to fetch page ${page}`);
+        return { success: false, error: `Failed to fetch page ${page}` 
+      }
+    }
+    return { success: true, data: allClasses 
+  },
+);
 
 ipcMain.handle("detailRequest", async (_event, params: { url: string }) => {
   // Handles the primary search request here

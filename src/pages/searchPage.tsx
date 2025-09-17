@@ -20,6 +20,7 @@ import { useTheme } from "next-themes";
 import courseProcessorWorker from "../workers/courseProcessorWorkerFactory";
 import searchHistoryWorker from "../workers/searchHistoryWorkerFactory";
 import Settings from "../components/ui/settings";
+import WarningDialog from "../components/ui/warning";
 import Loading from "../components/ui/loading";
 import SearchOptSelector from "../components/ui/searchComboBox";
 import InputBox from "../components/ui/inputBox";
@@ -130,6 +131,9 @@ const SearchPage = () => {
   // Warning and error states
   const [triggerWarning, setTriggerWarning] = useState(true);
   const [invalidInstructorScore, setInvalidInstructorScore] = useState(false);
+  const suppressMaxEntriesWarning =
+    searchParams.get("suppressMaxEntriesWarning") === "true" ||
+    localStorage.getItem("suppressMaxEntriesWarning") === "true";
 
   const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
     { label: string; value: string }[]
@@ -179,19 +183,37 @@ const SearchPage = () => {
     courseProcessorWorker.onmessage = async (event) => {
       const { action, url, searchParams } = event.data;
       if (action === "IPC_REQUEST") {
-        const { success, data, error } =
-          await window.electronAPI.fetchCourses(url);
+        const { success, data, error } = await window.electronAPI.fetchCourses(
+          url,
+          suppressMaxEntriesWarning,
+        );
 
         if (success === false) {
-          toaster.create({
-            type: "error",
-            title: "Error fetching course data",
-            description: error || "An unknown error occurred.",
-            duration: 4000,
-          });
-          setPerformSearch(false);
-          setFetchingAvailableSubjectCourses(false);
-          return;
+          if (error === "Max retries reached") {
+            WarningDialog.open("max-entries-warning", {
+              title: "Warning",
+              description:
+                "The requested query returns more than the recommended number of results.  It is suggested to narrow down your search parameters to improve performance and ensure a smoother experience. Do you wish to proceed with this search?",
+              onConfirm: () => {
+                navigate(
+                  `/search?university=${university}&suppressMaxEntriesWarning=true`,
+                );
+              },
+            });
+            setPerformSearch(false);
+            setFetchingAvailableSubjectCourses(false);
+            return;
+          } else {
+            toaster.create({
+              type: "error",
+              title: "Error fetching course data",
+              description: error || "An unknown error occurred.",
+              duration: 4000,
+            });
+            setPerformSearch(false);
+            setFetchingAvailableSubjectCourses(false);
+            return;
+          }
         }
 
         courseProcessorWorker.postMessage({
@@ -877,10 +899,11 @@ const SearchPage = () => {
           </div>
           <IoIosSettings
             className={styles.settingIcon}
-            onClick={() => Settings.open("a", {})}
+            onClick={() => Settings.open("settings", {})}
           />
           <Toaster />
           <Settings.Viewport />
+          <WarningDialog.Viewport />
         </>
       )}
     </>

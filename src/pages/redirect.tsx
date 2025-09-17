@@ -18,6 +18,7 @@ declare global {
       firstLogin: (url: string) => Promise<SearchParamJSON | null>;
       fetchCourses: (
         url: string,
+        maxEntriesWarning: boolean,
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
       fetchCourseDetails: (
         url: string,
