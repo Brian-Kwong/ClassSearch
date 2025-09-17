@@ -47,6 +47,7 @@ const SearchResultsPage = () => {
   const [pagedResults, setPagedResults] = useState(searchResults || []);
   const resultsPerPage = parseInt(settings["Results Per Page"]) || 10;
 
+  
   useEffect(() => {
     async function loadModel() {
       try {
@@ -73,7 +74,7 @@ const SearchResultsPage = () => {
 
   useEffect(() => {
     const fetchIcons = async () => {
-      if (!modelLoaded || !searchResults || !Array.isArray(searchResults)) return;
+      if (!modelLoaded || !searchResults ) return;
       try {
         const courses = searchResults.map((course) => ({
           // Removes all Roman numerical suffixes from the description
@@ -94,7 +95,7 @@ const SearchResultsPage = () => {
   }, [modelLoaded, searchResults]);
 
   useEffect(() => {
-    if (sortBy && searchResults && Array.isArray(searchResults)) {
+    if (sortBy && searchResults) {
       const sorted = sortCoursesBy(
         searchResults,
         teacherRatingsList || new Map(),
@@ -109,7 +110,7 @@ const SearchResultsPage = () => {
   }, [sortBy]);
 
   useEffect(() => {
-    if (searchResults && Array.isArray(searchResults)) {
+    if (searchResults ) {
       const totalPages = Math.ceil(searchResults.length / resultsPerPage);
       if (currentPage > totalPages) {
         setCurrentPage(totalPages);
@@ -123,8 +124,8 @@ const SearchResultsPage = () => {
     }
   }, [searchResults, currentPage, resultsPerPage]);
 
+
   return (
-    searchOptions && Array.isArray(searchResults) && icons.length === searchResults.length && teacherRatingsList ? (
       <Stack height={"100vh"}>
         <HStack
           gap={{
@@ -145,6 +146,7 @@ const SearchResultsPage = () => {
           <Group
             align={{ base: "space-between", md: "center" }}
             width={{ base: "100%", md: "fit-content" }}
+            minWidth={"500px"}
             gap={2}
           >
             <Selector
@@ -217,9 +219,6 @@ const SearchResultsPage = () => {
           </ButtonGroup>
         </Pagination.Root>
       </Stack>
-    ) : (
-      <Loading message="Loading search results..." /> 
-    )
   );
 
 

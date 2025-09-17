@@ -348,4 +348,4 @@ const ClassInfoCard = ({
   );
 
 
-export default ClassInfoCard;
+export default React.memo(ClassInfoCard);
