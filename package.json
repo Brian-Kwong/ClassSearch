@@ -8,6 +8,7 @@
     "prebuildModel": "tsx model.ts",
     "dev": "npx tsc -p tsconfig.electron.json && concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
     "build": "tsx model.ts && vite build && tsc -p tsconfig.electron.json && electron-builder",
+    "build-only": "tsx model.ts && vite build && tsc -p tsconfig.electron.json",
     "testBuild": "tsx model.ts && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
     "lint": "eslint .",
     "preview": "vite preview",
