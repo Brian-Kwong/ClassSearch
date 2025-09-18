@@ -22,7 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Build app (without electron-builder)
         run: npm run build-only
 
