@@ -182,87 +182,83 @@ const SearchPage = () => {
 
   useEffect(() => {
     courseProcessorWorker.onmessage = async (event) => {
-      try {
-        const { action, url, searchParams } = event.data;
-        if (action === "IPC_REQUEST") {
-          const { success, data, error } =
-            await window.electronAPI.fetchCourses(
-              url,
-              suppressMaxEntriesWarning,
-            );
-          if (success === false) {
-            if (error === "Max retries reached") {
-              WarningDialog.open("max-entries-warning", {
-                title: "Warning",
-                description:
-                  "The requested query returns more than the recommended number of results.  It is suggested to narrow down your search parameters to improve performance and ensure a smoother experience. Do you wish to proceed with this search?",
-                onConfirm: () => {
-                  navigate(
-                    `/search?university=${university}&suppressMaxEntriesWarning=true`,
-                  );
-                },
-              });
-              setPerformSearch(false);
-              setFetchingAvailableSubjectCourses(false);
-              return;
-            } else {
-              toaster.create({
-                type: "error",
-                title: "Error fetching course data",
-                description: error || "An unknown error occurred.",
-                duration: 4000,
-              });
-              setPerformSearch(false);
-              setFetchingAvailableSubjectCourses(false);
-              return;
-            }
-          }
-
-          courseProcessorWorker.postMessage({
-            action: "processData",
-            url,
-            data,
-            params: searchParams,
-            forSearch: performSearch,
-            university: university,
-            cacheEnabled: settings["Enable Caching"] === "true",
-            ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
-          }); // send the data to the worker for processing
-        }
-
-        if (action === "IPC_RESPONSE") {
-          // eslint-disable-next-line prefer-const
-          let { success, data } = event.data;
-          if (performSearch && Array.isArray(data)) {
-            if (instructorScore && instructorScore !== "") {
-              const score = parseFloat(instructorScore);
-              data = await getProfessorRatings(university || "").then(
-                (ratings) => {
-                  if (ratings) {
-                    return data.filter((course: UniversityCourseResponse) => {
-                      const rating = findClosestTeacherRating(
-                        ratings,
-                        course.meetings[0]?.instructor || "",
-                      );
-                      return rating && rating.avgRating >= score;
-                    });
-                  }
-                },
-              );
-            }
-            navigateToResults(data);
-          }
-          if (success) {
-            setAvailableCourseNumbers(data.available_courses_set);
-            setAvailableInstructorFirstNames(data.instructorFirstNameSet);
-            setAvailableInstructorLastNames(data.instructorLastNameSet);
+      const { action, url, searchParams } = event.data;
+      if (action === "IPC_REQUEST") {
+        const { success, data, error } = await window.electronAPI.fetchCourses(
+          url,
+          suppressMaxEntriesWarning,
+        );
+        if (success === false) {
+          if (error === "Max retries reached") {
+            WarningDialog.open("max-entries-warning", {
+              title: "Warning",
+              description:
+                "The requested query returns more than the recommended number of results.  It is suggested to narrow down your search parameters to improve performance and ensure a smoother experience. Do you wish to proceed with this search?",
+              onConfirm: () => {
+                navigate(
+                  `/search?university=${university}&suppressMaxEntriesWarning=true`,
+                );
+              },
+            });
+            setPerformSearch(false);
             setFetchingAvailableSubjectCourses(false);
+            return;
           } else {
-            console.error("Failed to process data.");
+            toaster.create({
+              type: "error",
+              title: "Error fetching course data",
+              description: error || "An unknown error occurred.",
+              duration: 4000,
+            });
+            setPerformSearch(false);
+            setFetchingAvailableSubjectCourses(false);
+            return;
           }
         }
-      } finally {
+
+        courseProcessorWorker.postMessage({
+          action: "processData",
+          url,
+          data,
+          params: searchParams,
+          forSearch: performSearch,
+          university: university,
+          cacheEnabled: settings["Enable Caching"] === "true",
+          ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
+        }); // send the data to the worker for processing
+      }
+
+      if (action === "IPC_RESPONSE") {
+        // eslint-disable-next-line prefer-const
+        let { success, data } = event.data;
         searching = false;
+        if (performSearch && Array.isArray(data)) {
+          if (instructorScore && instructorScore !== "") {
+            const score = parseFloat(instructorScore);
+            data = await getProfessorRatings(university || "").then(
+              (ratings) => {
+                if (ratings) {
+                  return data.filter((course: UniversityCourseResponse) => {
+                    const rating = findClosestTeacherRating(
+                      ratings,
+                      course.meetings[0]?.instructor || "",
+                    );
+                    return rating && rating.avgRating >= score;
+                  });
+                }
+              },
+            );
+          }
+          navigateToResults(data);
+        }
+        if (success) {
+          setAvailableCourseNumbers(data.available_courses_set);
+          setAvailableInstructorFirstNames(data.instructorFirstNameSet);
+          setAvailableInstructorLastNames(data.instructorLastNameSet);
+          setFetchingAvailableSubjectCourses(false);
+        } else {
+          console.error("Failed to process data.");
+        }
       }
     
   }, [navigateToResults, performSearch, searchTerm]);
@@ -315,9 +311,6 @@ const SearchPage = () => {
         setTimeout(resolve, 100);
       });
     }
-    console.log("Submitting search with parameters:", {
-      subject,
-    });
     searching = true;
     const searchParams = {
       subject: subject,

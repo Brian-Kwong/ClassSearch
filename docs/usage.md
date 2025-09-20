@@ -23,7 +23,7 @@ below `Term` and type or select your desired term. Terms can be found either by 
 ![Search Parameters](./assets/example-search.png)
 
 > [!TIP]
-> It is recommended to first select a subject before selecting other parameters. This will auto-populate the other fields with valid options based on the selected subject. As of release `v1.0.0`, only `Subject` will trigger auto-population of other fields.
+> It is recommended to first select a subject before selecting other parameters. This will auto-populate the other fields with valid options based on the selected subject. As of release `v0.3.1`, only `Subject` will trigger auto-population of other fields.
 
 You can find courses using the following parameters:
 

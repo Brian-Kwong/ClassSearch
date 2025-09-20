@@ -11,17 +11,20 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Getting Started", link: "/getting-started" },
+      { text: " FAQ", link: "/faq" },
     ],
 
     sidebar: [
       {
-        text: "Examples",
+        text: "Documentation",
         items: [
+          { text: "FAQ", link: "/faq" },
           { text: "Getting Started", link: "/getting-started" },
           { text: "Installation", link: "/install" },
           { text: "Usage & Search Parameters", link: "/usage" },
           { text: "Search Results", link: "/searchResults" },
           { text: "Settings", link: "/settings" },
+          { text: "Privacy", link: "/privacy-policy" },
           { text: "Contributing", link: "/contributing" },
         ],
       },

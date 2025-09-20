@@ -2,6 +2,9 @@
 
 The application is distributed as a desktop application distributed via GitHub releases. Please navigate to the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases) to download the latest version.
 
+> [!NOTE]
+> If you have any questions regarding the security warnings during installation, please refer to the [FAQ](faq.md#1-when-downloading-the-app-my-browser-warns-me-that-the-file-is-dangerous-why-is-that-and-is-it-safe-to-proceed) page for more information.
+
 ## Windows
 
 1. Download the latest `.exe` installer from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
