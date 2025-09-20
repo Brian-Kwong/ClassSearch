@@ -90,7 +90,7 @@
       "dist-electron/**/*"
     ],
     "appId": "com.brian-kwong.csu-class-search",
-    "productName": "CSU Class Search",
+    "productName": "Class Search",
     "directories": {
       "buildResources": "buildResources"
     },
