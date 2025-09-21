@@ -1,5 +1,9 @@
 import { parentPort, workerData } from "worker_threads";
-import { FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
+import {
+  FeatureExtractionPipeline,
+  pipeline,
+  env,
+} from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
 import path from "path";
 import { iconModelDBEntry } from "../components/types.js";
@@ -7,7 +11,7 @@ import createVectorDB from "../../model.js";
 
 let searchPipeline: FeatureExtractionPipeline | null = null;
 let lookupTable: lancedb.Table | null = null;
-
+const userDataPath = workerData.userDataPath;
 const dbPath = workerData.dbPath;
 
 if (parentPort) {
@@ -16,6 +20,15 @@ if (parentPort) {
       if (searchPipeline && lookupTable) {
         parentPort?.postMessage({ type: "modelLoaded" });
       } else {
+        env.allowRemoteModels = false;
+        env.allowLocalModels = true;
+        env.localModelPath = path.join(
+          userDataPath,
+          "model-cache",
+          "sentence-transformers",
+          "all-MiniLM-L6-v2",
+          "onnx",
+        );
         // Complex type to infer especially known issue with transformers.js
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

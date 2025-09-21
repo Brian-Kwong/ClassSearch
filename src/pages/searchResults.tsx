@@ -131,6 +131,8 @@ const SearchResultsPage = () => {
         justifyContent={"space-between"}
         flexWrap={"wrap"}
         height={"fit-content"}
+        width={"80vw"}
+        alignSelf={"center"}
       >
         <Stack alignItems={"flex-start"} gap={0}>
           <Text fontSize="2xl" fontWeight="bold">

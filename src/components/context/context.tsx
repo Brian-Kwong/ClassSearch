@@ -59,7 +59,7 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   const [settings, setSettings] = useState<{ [key: string]: string }>(
     window.localStorage.getItem("settings")
       ? JSON.parse(window.localStorage.getItem("settings")!)
-      : {},
+      : defaultSettings,
   );
 
   useEffect(() => {

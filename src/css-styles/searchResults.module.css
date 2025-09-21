@@ -4,6 +4,6 @@ body {
 
 .searchResultsList {
   scrollbar-width: none;
-  min-width: 80vw;
+  width: 80vw;
   flex-grow: 1;
 }
