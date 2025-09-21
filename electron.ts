@@ -79,7 +79,7 @@ autoUpdater.on("update-downloaded", async () => {
       "A new version of the app is available. Would you like to restart and install?",
     buttons: ["Yes", "No"],
   });
-  if (response === 0) {
+  if (response.response === 0) {
     autoUpdater.quitAndInstall();
   }
 });
