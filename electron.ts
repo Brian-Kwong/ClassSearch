@@ -14,7 +14,6 @@ import { fileURLToPath } from "url";
 import { Worker } from "worker_threads";
 import { pipeline, env } from "@huggingface/transformers";
 import fs from "fs";
-import { platform } from "os";
 // import fetch from 'node-fetch-cache';
 
 export let persistentSession: Session | null = null;
@@ -86,7 +85,7 @@ autoUpdater.on("update-downloaded", async () => {
 });
 
 ipcMain.handle(`firstLogin`, async (_event, params: { url: string }) => {
-  const result = await makeLoginWindow(params.url, persistentSession!);
+  const result = await makeLoginWindow(params.url, persistentSession!, true);
   return result;
 });
 
