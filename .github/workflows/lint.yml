@@ -12,6 +12,10 @@ jobs:
       - name: Install modules
         run: npm install
 
+      - name: Download additional files
+        run: |
+          curl -L ${{ secrets.FILE_URL }} -o src/components/csuLinks.ts
+
       - name: Run ESLint
         run: npm run lint
 
