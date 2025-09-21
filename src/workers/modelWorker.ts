@@ -20,11 +20,9 @@ if (parentPort) {
       if (searchPipeline && lookupTable) {
         parentPort?.postMessage({ type: "modelLoaded" });
       } else {
-        env.allowRemoteModels = false;
-        env.allowLocalModels = true;
-        env.localModelPath = path
-          .join(userDataPath, "model-cache")
-          .replace("/", path.sep);
+        // Env dent carry over to worker threads so we need to reset it here
+        env.allowRemoteModels = true;
+        env.cacheDir = path.join(userDataPath, "model-cache");
         // Complex type to infer especially known issue with transformers.js
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

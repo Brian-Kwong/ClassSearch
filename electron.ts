@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 import { Worker } from "worker_threads";
 import { pipeline, env } from "@huggingface/transformers";
 import fs from "fs";
+import { platform } from "os";
 // import fetch from 'node-fetch-cache';
 
 export let persistentSession: Session | null = null;
@@ -248,6 +249,8 @@ ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {
 ipcMain.handle("loadModel", async () => {
   if (fs.existsSync(path.join(userDataPath, "model-cache")) === false) {
     fs.mkdirSync(path.join(userDataPath, "model-cache"));
+    // Check if the cache folder exists, if not create it
+    // Only main electron process has access to fs
     env.allowRemoteModels = true;
     env.cacheDir = path.join(userDataPath, "model-cache");
     await pipeline(
@@ -257,7 +260,6 @@ ipcMain.handle("loadModel", async () => {
   }
   return new Promise<void>((resolve, reject) => {
     if (!iconWorker || iconWorker.threadId === -1) {
-      // Check if the cache folder exists, if not create it
       iconWorker = new Worker(
         path.join(__dirname, "src", "workers", "modelWorker.js"),
         {
@@ -273,7 +275,7 @@ ipcMain.handle("loadModel", async () => {
     });
     iconWorker.on("error", (err) => {
       console.error("Worker error:", err);
-      reject(err);
+      reject(err + env.localModelPath);
       iconWorker.terminate();
     });
   });

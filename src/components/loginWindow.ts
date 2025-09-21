@@ -6,11 +6,13 @@ export const makeLoginWindow = (
 ) => {
   return new Promise((resolve: (value: unknown) => void) => {
     let results: unknown = null;
+    let showWindow: string | number | NodeJS.Timeout | undefined;
     try {
       let redirectCount = 0;
       const loginWindow = new BrowserWindow({
         width: 400,
         height: 600,
+        show: false,
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,
@@ -18,10 +20,13 @@ export const makeLoginWindow = (
           partition: "persist:login",
         },
       });
-
+      showWindow = setTimeout(() => {
+        loginWindow.show();
+      }, 2500);
       loginWindow.loadURL(loginURL);
       loginWindow.setMenuBarVisibility(false);
       loginWindow.on("closed", () => {
+        clearTimeout(showWindow);
         resolve(results);
       });
 
