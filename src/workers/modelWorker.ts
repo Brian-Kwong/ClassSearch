@@ -22,13 +22,9 @@ if (parentPort) {
       } else {
         env.allowRemoteModels = false;
         env.allowLocalModels = true;
-        env.localModelPath = path.join(
-          userDataPath,
-          "model-cache",
-          "sentence-transformers",
-          "all-MiniLM-L6-v2",
-          "onnx",
-        );
+        env.localModelPath = path
+          .join(userDataPath, "model-cache")
+          .replace("/", path.sep);
         // Complex type to infer especially known issue with transformers.js
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

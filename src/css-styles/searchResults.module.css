@@ -5,5 +5,5 @@ body {
 .searchResultsList {
   scrollbar-width: none;
   width: 80vw;
-  flex-grow: 1;
+  align-self: center;
 }
