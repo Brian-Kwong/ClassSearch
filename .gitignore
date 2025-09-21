@@ -27,3 +27,4 @@ dev-dist
 /data
 /docs/.vitepress/cache
 src/components/csuLinks.ts
+.env
