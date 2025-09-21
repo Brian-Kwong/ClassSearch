@@ -3,6 +3,7 @@ import { BrowserWindow } from "electron";
 export const makeLoginWindow = (
   loginURL: string,
   userSession: Electron.Session,
+  showWindowOnStart: boolean = false,
 ) => {
   return new Promise((resolve: (value: unknown) => void) => {
     let results: unknown = null;
@@ -12,7 +13,7 @@ export const makeLoginWindow = (
       const loginWindow = new BrowserWindow({
         width: 400,
         height: 600,
-        show: false,
+        show: showWindowOnStart,
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,
@@ -22,7 +23,7 @@ export const makeLoginWindow = (
       });
       showWindow = setTimeout(() => {
         loginWindow.show();
-      }, 2500);
+      }, 5000);
       loginWindow.loadURL(loginURL);
       loginWindow.setMenuBarVisibility(false);
       loginWindow.on("closed", () => {
