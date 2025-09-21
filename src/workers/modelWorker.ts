@@ -24,10 +24,11 @@ if (parentPort) {
           "sentence-transformers/all-MiniLM-L6-v2",
         )) as FeatureExtractionPipeline;
         try {
+          console.log("Opening existing lookup table...", dbPath);
           const db = await lancedb.connect(dbPath);
           lookupTable = await db.openTable("icons");
-        } catch {
-          console.warn("Error opening lookup table: Recreating table ....");
+        } catch  (err) {
+          console.warn("Error opening lookup table: Recreating table ....", err);
           await createVectorDB(path.join(dbPath));
           const db = await lancedb.connect(dbPath);
           lookupTable = await db.openTable("icons");

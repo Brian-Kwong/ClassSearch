@@ -9,6 +9,6 @@ export const Loading = ({ message }: { message: string }) => {
       <Text>{message}</Text>
     </div>
   );
-
+};
 
 export default Loading;

@@ -140,4 +140,4 @@ export const createSettingControl = (
     default:
       return null;
   }
-
+};

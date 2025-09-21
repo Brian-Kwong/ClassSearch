@@ -25,7 +25,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("fetchProgress", listener);
     return () => {
       ipcRenderer.removeListener("fetchProgress", listener);
-    
+    };
   },
 });
 

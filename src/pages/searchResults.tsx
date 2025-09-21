@@ -88,7 +88,7 @@ const SearchResultsPage = () => {
       } catch (error) {
         console.error("Error performing semantic search:", error);
       }
-    
+    };
     fetchIcons();
   }, [modelLoaded, searchResults]);
 
@@ -221,6 +221,6 @@ const SearchResultsPage = () => {
       </Pagination.Root>
     </Stack>
   );
-
+};
 
 export default SearchResultsPage;

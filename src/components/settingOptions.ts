@@ -13,7 +13,7 @@ export type SettingOption = {
     value: string;
   }[];
   confirm?: boolean;
-
+};
 
 const defaultSettings: { [key: string]: string } = {
   "Enable Caching": "true",
@@ -27,7 +27,7 @@ const defaultSettings: { [key: string]: string } = {
   "Prefetch Delay (ms)": "300",
   "Dark Mode": "system",
   "Check for Updates on Startup": "true",
-
+};
 
 const cacheSettingsOptions: SettingOption[] = [
   {
@@ -209,4 +209,4 @@ export {
   resultsPerPageOptions,
   appearanceOptions,
   defaultSettings,
-
+};

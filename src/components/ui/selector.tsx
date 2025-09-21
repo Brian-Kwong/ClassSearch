@@ -6,7 +6,7 @@ type SelectorProps = {
   options: ListCollection;
   selectedValue: string;
   setSelectedValue: (value: string) => void;
-
+};
 
 const Selector = ({
   selectedValue,
@@ -51,6 +51,6 @@ const Selector = ({
       </Portal>
     </Select.Root>
   );
-
+};
 
 export default Selector;

@@ -4,7 +4,7 @@ self.postMessage({ status: "ready" });
 
 self.onerror = (error) => {
   console.error("An error occurred in the search history worker:", error);
-
+};
 
 const db = createAndOpenDB;
 
@@ -56,4 +56,4 @@ self.onmessage = async (event) => {
       success: true,
     });
   }
-
+};

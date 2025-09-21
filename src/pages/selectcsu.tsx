@@ -101,7 +101,7 @@ const SelectCSU = () => {
     }
     await localStorage.setItem("selectedUniversity", selectedUniversity);
     navigator(`/redirect?university=${selectedUniversity}`);
-  
+  };
 
   useEffect(() => {
     const storedUniversity = localStorage.getItem("selectedUniversity");
@@ -132,6 +132,6 @@ const SelectCSU = () => {
       </Group>
     </div>
   );
-
+};
 
 export default SelectCSU;

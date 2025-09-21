@@ -38,7 +38,7 @@ const fetchSchoolData = async (
     query: {
       text: school,
     },
-  
+  };
   const response = await fetch(RATE_MY_PROFESSOR_API_URL, {
     method: "POST",
     headers: {
@@ -67,7 +67,7 @@ const fetchSchoolData = async (
   throw new Error(
     `Failed to fetch university information.  While fetching the following error was raised ${response.statusText}`,
   );
-
+};
 
 const fetchProfessorData = async (
   schoolId: string,
@@ -101,7 +101,7 @@ const fetchProfessorData = async (
       schoolID: string;
       departmentID?: string;
       text?: string;
-    
+    };
     after: string | null;
   } = {
     query: {
@@ -110,7 +110,7 @@ const fetchProfessorData = async (
       text: professorName,
     },
     after: null,
-  
+  };
   const response = await fetch(RATE_MY_PROFESSOR_API_URL, {
     method: "POST",
     headers: {
@@ -163,7 +163,7 @@ const fetchProfessorData = async (
   throw new Error(
     `Failed to fetch professor information. While fetching the following error was raised ${response.statusText}`,
   );
-
+};
 
 const fetchPolyProfessorData = async () => {
   // To DO
@@ -191,7 +191,7 @@ const fetchPolyProfessorData = async () => {
   throw new Error(
     `Failed to fetch professor information. While fetching the following error was raised ${professorResults.statusText}`,
   );
-
+};
 
 if (parentPort) {
   parentPort.on("message", async (message) => {

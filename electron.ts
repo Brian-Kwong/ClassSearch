@@ -67,7 +67,7 @@ const createNewApp = () => {
   } catch (error) {
     console.error("Error occurred while creating the main window:", error);
   }
-
+};
 
 app.whenReady().then(createNewApp);
 
@@ -98,7 +98,7 @@ const getCookies = async (persistentSession: Session | null) => {
     return psTokens;
   }
   return null;
-
+};
 
 const fetchPage = async (
   url: string,
@@ -124,9 +124,9 @@ const fetchPage = async (
               success: true,
               numberOfPages: data.pageCount || 1,
               classes: data.classes || [],
-            
+            };
           } else {
-            return { success: true, data 
+            return { success: true, data };
           }
         }
       }
@@ -139,25 +139,25 @@ const fetchPage = async (
               page = page as unknown as {
                 pageCount: number;
                 classes: unknown[];
-              
+              };
               return {
                 success: true,
                 numberOfPages: page.pageCount || 1,
                 classes: page.classes,
-              
+              };
             } else {
-              return { success: true, data: page 
+              return { success: true, data: page };
             }
           }
         } catch {
-          return { success: false, numberOfPages: 0, classes: null 
+          return { success: false, numberOfPages: 0, classes: null };
         }
       }
     }
     await new Promise((res) => setTimeout(res, attempt * 1000)); // Exponential backoff
   }
-  return { success: false, numberOfPages: 0, classes: null 
-
+  return { success: false, numberOfPages: 0, classes: null };
+};
 
 ipcMain.handle(
   "searchRequest",
@@ -166,11 +166,11 @@ ipcMain.handle(
     const cookies = await getCookies(persistentSession);
     if (!cookies) {
       console.error("No cookies found");
-      return { success: false, error: "No cookies found" 
+      return { success: false, error: "No cookies found" };
     }
     const firstPageResult = await fetchPage(params.url, cookies);
     if (!firstPageResult.success) {
-      return { success: false, error: "Failed to fetch the first page" 
+      return { success: false, error: "Failed to fetch the first page" };
     }
     const allClasses = [...firstPageResult.classes];
     const totalPages = firstPageResult.numberOfPages;
@@ -180,7 +180,7 @@ ipcMain.handle(
         success: false,
         error: "Max retries reached",
         totalPages: totalPages,
-      
+      };
     }
 
     for (let page = 2; page <= totalPages; page++) {
@@ -190,10 +190,10 @@ ipcMain.handle(
         allClasses.push(...pageResult.classes);
       } else {
         console.error(`Failed to fetch page ${page}`);
-        return { success: false, error: `Failed to fetch page ${page}` 
+        return { success: false, error: `Failed to fetch page ${page}` };
       }
     }
-    return { success: true, data: allClasses 
+    return { success: true, data: allClasses };
   },
 );
 
@@ -202,13 +202,13 @@ ipcMain.handle("detailRequest", async (_event, params: { url: string }) => {
   const cookies = await getCookies(persistentSession);
   if (!cookies) {
     console.error("No cookies found");
-    return { success: false, error: "No cookies found" 
+    return { success: false, error: "No cookies found" };
   }
   const detailResult = await fetchPage(params.url, cookies, "Detail");
   if (!detailResult.success) {
-    return { success: false, error: "Failed to fetch detail data" 
+    return { success: false, error: "Failed to fetch detail data" };
   }
-  return { success: true, data: detailResult.data 
+  return { success: true, data: detailResult.data };
 });
 
 ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {
@@ -241,7 +241,7 @@ ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {
     });
   } catch (error) {
     console.error("Error fetching RMP info:", error);
-    return { error: "Failed to fetch RMP info" 
+    return { error: "Failed to fetch RMP info" };
   }
 });
 

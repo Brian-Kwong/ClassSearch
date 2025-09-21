@@ -2,10 +2,10 @@
 import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import {
-  redirectURL,
   UniversityCourseResponse,
   UserSearchRequestTypes,
 } from "../components/types";
+import { classSearchEndpoint, redirectURL } from "../components/csuLinks";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "../components/ui/toaster";
@@ -86,7 +86,7 @@ const generate_available_terms = (termType: "Semester" | "Quarter") => {
   }
 
   return available_terms;
-
+};
 
 const SearchPage = () => {
   const { theme, resolvedTheme } = useTheme();
@@ -260,7 +260,7 @@ const SearchPage = () => {
           console.error("Failed to process data.");
         }
       }
-    
+    };
   }, [navigateToResults, performSearch, searchTerm]);
 
   useEffect(() => {
@@ -281,7 +281,7 @@ const SearchPage = () => {
         // No action needed for save complete
         return;
       }
-    
+    };
   }, []);
 
   const submitSearch = useCallback(async () => {
@@ -325,8 +325,8 @@ const SearchPage = () => {
       instructorLastName: instructorLastName,
       instructorScore: instructorScore,
       searchTerm: searchTerm,
-    
-    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
+    };
+    const url = `${redirectURL[university as keyof typeof redirectURL]}${classSearchEndpoint}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
     courseProcessorWorker.postMessage({
       action: "fetchCourses",
       url,
@@ -621,7 +621,7 @@ const SearchPage = () => {
     );
     return () => {
       removeListener();
-    
+    };
   }, []);
 
   const handleCourseAttributesChange = React.useCallback(
@@ -916,6 +916,6 @@ const SearchPage = () => {
       )}
     </>
   );
-
+};
 
 export default SearchPage;

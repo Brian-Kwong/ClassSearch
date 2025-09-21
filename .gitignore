@@ -26,3 +26,4 @@ dev-dist
 *.sw?
 /data
 /docs/.vitepress/cache
+src/components/csuLinks.ts

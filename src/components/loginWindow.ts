@@ -50,4 +50,4 @@ export const makeLoginWindow = (
       console.error("Error creating login window:", error);
     }
   });
-
+};

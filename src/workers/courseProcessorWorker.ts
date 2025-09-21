@@ -12,7 +12,7 @@ self.postMessage({ status: "ready" });
 
 self.onerror = (error) => {
   console.error("An error occurred in the course processor worker:", error);
-
+};
 
 const processData = (data: UniversityCourseResponse[]) => {
   const seen = new Set();
@@ -23,7 +23,7 @@ const processData = (data: UniversityCourseResponse[]) => {
         return {
           label: `${course.descr} (${course.subject}${course.catalog_nbr})`,
           value: course.catalog_nbr,
-        
+        };
       }
       return null;
     })
@@ -52,8 +52,8 @@ const processData = (data: UniversityCourseResponse[]) => {
     available_courses_set,
     instructorFirstNameSet: Array.from(instructorFirstNameSet.values()),
     instructorLastNameSet: Array.from(instructorLastNameSet.values()),
-  
-
+  };
+};
 
 const filterData = (
   data: UniversityCourseResponse[],
@@ -133,7 +133,7 @@ const filterData = (
         ))
     );
   });
-
+};
 
 // Checks if param A is a subset of param B
 // A subset is param A is when param A is more restrictive then param B
@@ -179,7 +179,7 @@ const isSubsetOfParams = (
     }
   }
   return true;
-
+};
 
 self.onmessage = async (event) => {
   const {
@@ -240,4 +240,4 @@ self.onmessage = async (event) => {
           : processData(processedData),
     });
   }
-
+};

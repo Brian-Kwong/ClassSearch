@@ -2,7 +2,7 @@ import error from "../assets/error.png";
 
 type ErrorProps = {
   message: string;
-
+};
 
 const Error = ({ message }: ErrorProps) => {
   return (
@@ -11,6 +11,6 @@ const Error = ({ message }: ErrorProps) => {
       <p className="error-message">Error: {message}</p>
     </div>
   );
-
+};
 
 export default Error;

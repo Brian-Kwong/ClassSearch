@@ -11,7 +11,7 @@ type SearchHistoryDrawerProps = {
     params: UserSearchRequestTypes;
   }[];
   setSelectedSearchHistoryIndex?: (index: number | null) => void;
-
+};
 
 const HistoryDrawer = ({
   openButton,
@@ -86,6 +86,6 @@ const HistoryDrawer = ({
       </Portal>
     </Drawer.Root>
   );
-
+};
 
 export default HistoryDrawer;

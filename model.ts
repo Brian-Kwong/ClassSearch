@@ -6,7 +6,7 @@ import { pipeline } from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
 
 async function fetchIconMetadata() {
-  const metadata: Record<string, { name: string; aliases: string }[]> = {
+  const metadata: Record<string, { name: string; aliases: string }[]> = {};
   const iconSets = ["ic"]; // Feel free to add any icon set yoy would like
   for (const set of iconSets) {
     if (typeof set === "string" && iconSets.includes(set)) {
@@ -132,6 +132,7 @@ if (
   import.meta.url === process.argv[1] ||
   import.meta.url === `file://${process.argv[1]}`
 ) {
+  process.chdir("dist-electron");
   await createVectorDB("data/local-db");
 }
 

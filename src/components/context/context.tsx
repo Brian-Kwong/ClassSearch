@@ -133,4 +133,4 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </searchDataContext.Provider>
   );
-
+};

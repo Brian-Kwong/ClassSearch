@@ -130,6 +130,6 @@ const sortCoursesBy = (
       break;
   }
   return sortedCourses;
-
+};
 
 export default sortCoursesBy;

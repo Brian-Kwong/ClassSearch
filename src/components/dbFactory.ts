@@ -13,31 +13,31 @@ export interface CourseDB extends DBSchema {
       timestamp: number;
       data: UniversityCourseResponse[];
       params: UserSearchRequestTypes;
-    
-  
+    };
+  };
   searchHistory: {
     key: number;
     value: {
       timestamp: number;
       params: UserSearchRequestTypes;
-    
-  
+    };
+  };
   teacherRatings: {
     key: string;
     value: {
       school: string;
       timestamp: number;
       ratings: Record<string, TeacherRatings>;
-    
-  
+    };
+  };
   classDetails: {
     key: string;
     value: {
       classNbr: string;
       timestamp: number;
       data: UniversityCourseDetailsResponse;
-    
-  
+    };
+  };
 }
 
 export const createAndOpenDB = await openDB<CourseDB>("course-db", 1, {

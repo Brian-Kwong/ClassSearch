@@ -1,46 +1,3 @@
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
-
 export type SearchParamJSON = {
   subjects: [
     {
@@ -74,7 +31,7 @@ export type SearchParamJSON = {
       INSTITUTION: string;
     },
   ];
-
+};
 
 export type UserSearchRequestTypes = {
   subject: string[];
@@ -89,7 +46,7 @@ export type UserSearchRequestTypes = {
   instructorLastName: string[];
   instructorScore: string;
   searchTerm: string[];
-
+};
 
 export type UniversityCourseResponse = {
   index: number;
@@ -145,25 +102,25 @@ export type UniversityCourseResponse = {
   isWaitlisted: boolean;
   notes: Array<unknown>;
   icons: Array<unknown>;
-
+};
 
 export type UniversityCourseDetailsResponse = {
   section_info: {
     enroll_dates?: {
       open_date: string;
       close_date: string;
-    
+    };
     catalog_descr: {
       crse_catalog_description: string;
-    
+    };
     notes: {
       class_notes: string;
-    
+    };
     enrollment_information: {
       enroll_requirements: string;
-    
-  
-
+    };
+  };
+};
 
 export type iconModelDBEntry = {
   lib: string;
@@ -171,7 +128,7 @@ export type iconModelDBEntry = {
   aliases: string;
   text: string;
   vector: number[];
-
+};
 
 export type SchoolSearchResponse = {
   data: {
@@ -185,12 +142,12 @@ export type SchoolSearchResponse = {
               id: string;
               name: string;
             }[];
-          
+          };
         }[];
-      
-    
-  
-
+      };
+    };
+  };
+};
 
 export type rateMyProfessorTeacherSearchResponse = {
   data: {
@@ -203,11 +160,11 @@ export type rateMyProfessorTeacherSearchResponse = {
         pageInfo: {
           hasNextPage: boolean;
           endCursor: string | null;
-        
-      
-    
-  
-
+        };
+      };
+    };
+  };
+};
 
 export type polyRatingProfessorTeacherSearchResponse = {
   result: {
@@ -219,8 +176,8 @@ export type polyRatingProfessorTeacherSearchResponse = {
       numEvals: number;
       overallRating: number;
     }[];
-  
-
+  };
+};
 
 export type TeacherRatings = {
   id: string;
@@ -229,4 +186,4 @@ export type TeacherRatings = {
   department: string;
   avgRating: number;
   numRatings: number;
-
+};

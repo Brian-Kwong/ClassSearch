@@ -1,5 +1,6 @@
 import { createAndOpenDB } from "./dbFactory";
-import { UniversityCourseDetailsResponse, redirectURL } from "./types";
+import { UniversityCourseDetailsResponse } from "./types";
+import { redirectURL, classDetailsEndpoint } from "./csuLinks";
 
 const days = 1000 * 60 * 60 * 24;
 const db = createAndOpenDB;
@@ -21,7 +22,7 @@ const fetchClassDetails = async (
         db.delete("classDetails", classNbr);
       }
     }
-    const url = `${redirectURL[university as keyof typeof redirectURL]}?institution=${institutionId}&term=${term}&class_nbr=${classNbr}`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}${classDetailsEndpoint}?institution=${institutionId}&term=${term}&class_nbr=${classNbr}`;
     const classDetails = await window.electronAPI.fetchCourseDetails(url);
     if (classDetails && classDetails.data) {
       db.put("classDetails", {
@@ -34,6 +35,6 @@ const fetchClassDetails = async (
   } catch (error) {
     console.error("Error fetching class details:", error);
   }
-
+};
 
 export default fetchClassDetails;

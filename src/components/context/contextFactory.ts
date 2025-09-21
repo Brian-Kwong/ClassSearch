@@ -14,7 +14,7 @@ export interface SearchDataContextType {
     availableCourseNumbers: { label: string; value: string }[];
     availableInstructorFirstNames: { label: string; value: string }[];
     availableInstructorLastNames: { label: string; value: string }[];
-  
+  };
   setSearchQueryParams: (
     params: UserSearchRequestTypes & {
       availableCourseNumbers: { label: string; value: string }[];
@@ -24,7 +24,7 @@ export interface SearchDataContextType {
   ) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
-  settings: { [key: string]: string 
+  settings: { [key: string]: string };
   setSettings: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 }
 
@@ -38,4 +38,4 @@ export const useSearchContext = () => {
     throw new Error("useSearchContext must be used within a SearchProvider");
   }
   return context;
-
+};

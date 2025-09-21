@@ -20,7 +20,7 @@ export const getProfessorRatings = async (
       Date.now() - cached.timestamp < days * ttlDays &&
       cached.ratings
     ) {
-      rmpInfo = { data: new Map(Object.entries(cached.ratings)) 
+      rmpInfo = { data: new Map(Object.entries(cached.ratings)) };
     } else {
       rmpInfo = await window.electronAPI.getRMPInfo(university);
       if (cacheEnabled && rmpInfo && rmpInfo.data) {
@@ -39,7 +39,7 @@ export const getProfessorRatings = async (
   } catch (error) {
     console.error("Error fetching RMP Info:", error);
   }
-
+};
 
 export const findClosestTeacherRating = (
   teacherRatingsList: Map<string, TeacherRatings> | null,
@@ -54,4 +54,4 @@ export const findClosestTeacherRating = (
     }
   }
   return undefined;
-
+};

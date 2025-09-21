@@ -8,7 +8,7 @@ type InputBoxProps = {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   loadingData?: boolean;
-
+};
 
 const InputBox = ({ label, value, onChange, loadingData }: InputBoxProps) => {
   const { theme, resolvedTheme } = useTheme();
@@ -27,6 +27,6 @@ const InputBox = ({ label, value, onChange, loadingData }: InputBoxProps) => {
       />
     </Field.Root>
   );
-
+};
 
 export default React.memo(InputBox);

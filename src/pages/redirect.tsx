@@ -2,11 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Error from "./error";
-import {
-  redirectURL,
-  SearchParamJSON,
-  TeacherRatings,
-} from "../components/types";
+import { SearchParamJSON, TeacherRatings } from "../components/types";
+import { redirectURL, searchOptionsEndpoint } from "../components/csuLinks";
 import { PulseLoader } from "react-spinners";
 import { useSearchContext } from "../components/context/contextFactory";
 import Loading from "../components/ui/loading";
@@ -32,11 +29,11 @@ declare global {
           courses: { subject_descr: string }[];
         }) => Promise<{ lib: string; name: string }[]>;
         setup: () => Promise<void>;
-      
+      };
       onFetchProgress: (
         callback: (event: unknown, progress: number) => void,
       ) => () => void;
-    
+    };
   }
 }
 
@@ -55,7 +52,7 @@ const Redirect = () => {
     if (!university) return;
     if (isCreatingLoginWindow.current) return;
     isCreatingLoginWindow.current = true;
-    const url = `${redirectURL[university as keyof typeof redirectURL]}`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}${searchOptionsEndpoint}`;
     window.electronAPI
       .firstLogin(url)
       .then((result: SearchParamJSON | null) => {
@@ -83,6 +80,6 @@ const Redirect = () => {
       )}
     </>
   );
-
+};
 
 export default Redirect;

@@ -16,7 +16,7 @@ type SearchOptSelectorProps = {
   options: Array<{ label: string; value: string }>;
   label: string;
   multiple: boolean;
-
+};
 
 const SearchOptSelector = ({
   selectedValue,
@@ -105,6 +105,6 @@ const SearchOptSelector = ({
       </Portal>
     </Combobox.Root>
   );
-
+};
 
 export default React.memo(SearchOptSelector);

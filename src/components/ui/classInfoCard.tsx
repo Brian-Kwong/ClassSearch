@@ -35,7 +35,7 @@ const ClassInfoCard = ({
 }: {
   university: string;
   course: UniversityCourseResponse;
-  iconName: { lib: string; name: string 
+  iconName: { lib: string; name: string };
   professorRating?: TeacherRatings;
 }) => {
   const { resolvedTheme } = useTheme();
@@ -74,7 +74,7 @@ const ClassInfoCard = ({
       if (getClassDetailsDebounceRef.current) {
         clearTimeout(getClassDetailsDebounceRef.current);
       }
-    
+    };
     // No need to redefine a static debounce function
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -346,6 +346,6 @@ const ClassInfoCard = ({
       </Accordion.Item>
     </Accordion.Root>
   );
-
+};
 
 export default React.memo(ClassInfoCard);
