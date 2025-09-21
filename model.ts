@@ -1,9 +1,9 @@
 /*
 The following node script generates a basic model to fetch and vectorize icon metadata from Iconify's API
 */
-
 import { pipeline } from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
+import fs from "fs";
 
 async function fetchIconMetadata() {
   const metadata: Record<string, { name: string; aliases: string }[]> = {};
@@ -132,6 +132,9 @@ if (
   import.meta.url === process.argv[1] ||
   import.meta.url === `file://${process.argv[1]}`
 ) {
+  if (!fs.existsSync("dist-electron")) {
+    fs.mkdirSync("dist-electron");
+  }
   process.chdir("dist-electron");
   await createVectorDB("data/local-db");
 }
