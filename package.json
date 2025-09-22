@@ -110,7 +110,15 @@
       ]
     },
     "win": {
-      "publisherName": "Kitty Brian"
+      "target": [
+        "appx",
+        "nsis"
+      ]
+    },
+    "appx": {
+      "identityName": "KittyBrian.ClassSearch",
+      "publisher": "CN=0177502A-F6A5-4052-9171-71F1613AF282",
+      "publisherDisplayName": "Kitty Brian"
     },
     "snap": {
       "publish": "never"
