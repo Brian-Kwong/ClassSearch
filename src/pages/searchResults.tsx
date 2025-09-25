@@ -200,7 +200,7 @@ const SearchResultsPage = () => {
             setSelectedValue={setSortBy}
             options={sortByList}
           />
-          {searchResults.length > 0 ? <ReviseSearchButton /> : <></>}
+          {searchResults.length > 0 ? <ReviseSearchButton /> : null}
         </Group>
       </HStack>
       {searchResults.length > 0 ? (
