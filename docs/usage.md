@@ -8,6 +8,9 @@ Once the application is installed, you can launch it from your applications menu
 
 2. Afterwards, you will be redirected to your institution's SSO login page. Enter your credentials to log in. If you encounter any issues logging in, please ensure you have selected the correct institution and that your credentials are valid.
 
+>[!TIP]
+If your institution is not listed, but you would still like to try the application, please select `Demo`. This will allow you to explore the application's features using demo data. Most features are available with a demo-created endpoint. Professor ratings and live seat availability will not be displayed. All data responses are mocked and static.
+
 > [!NOTE]
 > If you run into `401` Access Denied or `403` Forbidden errors, please submit a request to add support for your university. The provided URL most likely invalid from your institution or has been updated since the last update.
 
