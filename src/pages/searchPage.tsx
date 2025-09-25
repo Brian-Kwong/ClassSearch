@@ -68,23 +68,22 @@ const generate_available_terms = (termType: "Semester" | "Quarter") => {
 
       available_terms.push({
         label: `${currentYear + yearOffset} Winter/Intersession`,
-        value: `${+(Math.floor((currentYear + yearOffset) / 100) * 100 + (yearOffset % 100))}1`,
+        value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}1`,
       });
       available_terms.push({
         label: `${currentYear + yearOffset} Spring`,
-        value: `${+(Math.floor((currentYear + yearOffset) / 100) * 100 + ((currentYear + yearOffset) % 100)) + 3}`,
+        value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}3`,
       });
       available_terms.push({
         label: `${currentYear + yearOffset} Summer`,
-        value: `${+(Math.floor((currentYear + yearOffset) / 100) * 100 + ((currentYear + yearOffset) % 100)) + 5}`,
+        value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}5`,
       });
       available_terms.push({
         label: `${currentYear + yearOffset} Fall`,
-        value: `${+(Math.floor((currentYear + yearOffset) / 100) * 100 + ((currentYear + yearOffset) % 100)) + 7}`,
+        value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}7`,
       });
     }
   }
-
   return available_terms;
 };
 
@@ -756,7 +755,7 @@ const SearchPage = () => {
                   setSelectedValue={handleCourseAttributesChange}
                   options={courseAttributeOptions}
                   label="Course Attributes"
-                  multiple={true}
+                  multiple={false}
                 />
               </GridItem>
               <GridItem colSpan={1}>

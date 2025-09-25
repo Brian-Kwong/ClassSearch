@@ -279,8 +279,7 @@ const ClassInfoCard = ({
                       Enrollment Dates:
                     </Text>
                     <Text className={styles.categoryData}>
-                      {courseDetails?.section_info.enroll_dates?.open_date ||
-                        "No enrollment dates available."}
+                      {`${courseDetails?.section_info.enroll_dates?.open_date || ""} ${courseDetails?.section_info.enroll_dates?.close_date || "No enrollment dates available."}`}
                     </Text>
                   </HStack>
                   <HStack className={styles.entry}>

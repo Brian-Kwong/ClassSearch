@@ -48,7 +48,6 @@ const createNewApp = () => {
         nodeIntegration: true,
         contextIsolation: true,
         preload: path.join(__dirname, "src", "preload.js"),
-        devTools: true,
         enableBlinkFeatures: "EnableWebWorkerInspection",
       },
     });

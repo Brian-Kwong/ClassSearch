@@ -8,10 +8,11 @@ import {
   Pagination,
   ButtonGroup,
   IconButton,
+  Box,
 } from "@chakra-ui/react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useSearchContext } from "../components/context/contextFactory";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { TeacherRatings } from "../components/types";
 import {
@@ -19,6 +20,8 @@ import {
   findClosestTeacherRating,
 } from "../components/rateMyProfessorFetcher";
 import { sortByList } from "../components/settingOptions";
+import { Toaster } from "../components/ui/toaster";
+import { toaster } from "../components/ui/toastFactory";
 import ClassInfoCard from "../components/ui/classInfoCard";
 import Selector from "../components/ui/selector";
 import sortCoursesBy from "../components/sortBy";
@@ -59,6 +62,9 @@ const SearchResultsPage = () => {
   }, []);
 
   useEffect(() => {
+    if (university === "Demo") {
+      return;
+    }
     getProfessorRatings(
       university || "",
       settings["Enable Caching"] === "true",
@@ -110,6 +116,11 @@ const SearchResultsPage = () => {
   useEffect(() => {
     if (searchResults) {
       const totalPages = Math.ceil(searchResults.length / resultsPerPage);
+      if (totalPages === 0) {
+        setCurrentPage(1);
+        setPagedResults([]);
+        return;
+      }
       if (currentPage > totalPages) {
         setCurrentPage(totalPages);
       } else if (currentPage < 1) {
@@ -122,8 +133,41 @@ const SearchResultsPage = () => {
     }
   }, [searchResults, currentPage, resultsPerPage]);
 
+  useEffect(() => {
+    let showDemoModeWarning: NodeJS.Timeout;
+    if (university === "Demo") {
+      showDemoModeWarning = setTimeout(() => {
+        toaster.create({
+          type: "warning",
+          title: "Demo Mode",
+          description:
+            "You are currently in Demo Mode. Rate my Professor will not not available.",
+          duration: 5000,
+        });
+      }, 1000);
+    }
+    return () => clearTimeout(showDemoModeWarning);
+  }, [university]);
+
+  const ReviseSearchButton = React.memo(() => {
+    return (
+      <Button
+        colorPalette="brand"
+        width={"fit-content"}
+        onClick={() => {
+          navigate(`/search?university=${university}&latestHistory=${true}`, {
+            state: { searchOptions },
+          });
+        }}
+      >
+        Revise Search Parameters
+      </Button>
+    );
+  });
+
   return (
     <Stack height={"100vh"}>
+      <Toaster />
       <HStack
         gap={{
           base: 5,
@@ -156,71 +200,77 @@ const SearchResultsPage = () => {
             setSelectedValue={setSortBy}
             options={sortByList}
           />
-          <Button
-            colorPalette="brand"
-            width={"fit-content"}
-            onClick={() => {
-              navigate(
-                `/search?university=${university}&latestHistory=${true}`,
-                {
-                  state: { searchOptions },
-                },
-              );
-            }}
-          >
-            Revise Search Parameters
-          </Button>
+          {searchResults.length > 0 ? <ReviseSearchButton /> : <></>}
         </Group>
       </HStack>
-      <Virtuoso
-        data={pagedResults}
-        className={styles.searchResultsList}
-        itemContent={(index, course) => (
-          <ClassInfoCard
-            key={index}
-            university={university || ""}
-            course={course}
-            iconName={icons.at(index) || { lib: "mdi", name: "book" }}
-            professorRating={
-              teacherRatingsList
-                ? findClosestTeacherRating(
-                    teacherRatingsList,
-                    course.meetings[0]?.instructor || "",
-                  )
-                : undefined
-            }
-          />
-        )}
-      />
-      <Pagination.Root
-        height={"120px"}
-        count={searchResults.length}
-        pageSize={resultsPerPage}
-        defaultPage={1}
-        onPageChange={(page) => setCurrentPage(page.page)}
-      >
-        <ButtonGroup variant="ghost" size="sm">
-          <Pagination.PrevTrigger asChild>
-            <IconButton>
-              <LuChevronLeft />
-            </IconButton>
-          </Pagination.PrevTrigger>
-
-          <Pagination.Items
-            render={(page) => (
-              <IconButton variant={{ base: "ghost", _selected: "outline" }}>
-                {page.value}
+      {searchResults.length > 0 ? (
+        <Virtuoso
+          data={pagedResults}
+          className={styles.searchResultsList}
+          itemContent={(index, course) => (
+            <ClassInfoCard
+              key={index}
+              university={university || ""}
+              course={course}
+              iconName={icons.at(index) || { lib: "mdi", name: "book" }}
+              professorRating={
+                teacherRatingsList
+                  ? findClosestTeacherRating(
+                      teacherRatingsList,
+                      course.meetings[0]?.instructor || "",
+                    )
+                  : undefined
+              }
+            />
+          )}
+        />
+      ) : (
+        <Box className={styles.searchResultsList}>
+          <Text alignSelf="center" marginTop="20px" fontSize="xl">
+            .·°՞(≧□≦)՞°·.
+          </Text>
+          <Text alignSelf="center" fontSize="md">
+            We searched everywhere but couldn't find any classes matching your
+            search parameters.
+          </Text>
+          <Text alignSelf="center" fontSize="md">
+            Try revising your search parameters to find more classes!
+          </Text>
+          <Box alignSelf="center" padding="20px">
+            <ReviseSearchButton />
+          </Box>
+        </Box>
+      )}
+      {searchResults.length > 0 && (
+        <Pagination.Root
+          height={"120px"}
+          count={searchResults.length}
+          pageSize={resultsPerPage}
+          defaultPage={1}
+          onPageChange={(page) => setCurrentPage(page.page)}
+        >
+          <ButtonGroup variant="ghost" size="sm">
+            <Pagination.PrevTrigger asChild>
+              <IconButton>
+                <LuChevronLeft />
               </IconButton>
-            )}
-          />
+            </Pagination.PrevTrigger>
 
-          <Pagination.NextTrigger asChild>
-            <IconButton>
-              <LuChevronRight />
-            </IconButton>
-          </Pagination.NextTrigger>
-        </ButtonGroup>
-      </Pagination.Root>
+            <Pagination.Items
+              render={(page) => (
+                <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                  {page.value}
+                </IconButton>
+              )}
+            />
+            <Pagination.NextTrigger asChild>
+              <IconButton>
+                <LuChevronRight />
+              </IconButton>
+            </Pagination.NextTrigger>
+          </ButtonGroup>
+        </Pagination.Root>
+      )}
     </Stack>
   );
 };

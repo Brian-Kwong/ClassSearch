@@ -87,6 +87,7 @@ const csuList = createListCollection({
       label: "California State University, Stanislaus",
       value: "California State University, Stanislaus",
     },
+    { label: "Demo", value: "Demo" },
   ],
 });
 
