@@ -3,6 +3,7 @@ import markdownItFootnote from "markdown-it-footnote";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  head: [["link", { rel: "icon", href: "/icon.ico" }]],
   base: "/ClassSearch/",
   title: "Class Search",
   description: "A simple class search engine for California State University",
