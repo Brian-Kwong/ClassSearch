@@ -7,12 +7,24 @@ The application is distributed as a desktop application distributed via GitHub r
 
 ## Windows
 
+### Windows Store Installation (Recommended)
+
+1. Open the Microsoft Store on your Windows device.
+2. Search for "ClassSearch" in the search bar or click [here](https://apps.microsoft.com/detail/9nkf0vxdwm8g?hl=en-US&gl=US) to go directly head to the app's page.
+3. Click the "Get" button to download and install the application.
+4. Once installed, you can find the application in your Start Menu or by searching for "ClassSearch".
+
+### Windows Executable Installer
+
 1. Download the latest `.exe` installer from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
 2. Run the installer wizard.
 3. When prompted by Windows Defender SmartScreen, click "More Info" and then "Run Anyway".
 4. Follow the prompts in the installer to complete the installation.
 
 ## macOS
+
+> [!NOTE]
+> There is currently no notarized version of the application available. You may encounter security warnings when installing the app. Please refer to the [FAQ](faq.md#1-when-downloading-the-app-my-browser-warns-me-that-the-file-is-dangerous-why-is-that-and-is-it-safe-to-proceed) for more information. An macOS app notarized version will be provided in a future release.
 
 1. Download the latest `.dmg` installer from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
 2. Open the downloaded `.dmg` file.
