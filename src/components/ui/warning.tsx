@@ -53,7 +53,7 @@ const WarningDialog = createOverlay((props) => {
                   className={`${styles.button} ${styles.cancel}`}
                   onClick={() => {
                     localStorage.removeItem("suppressMaxEntriesWarning");
-                    WarningDialog.close("max-entries-warning");
+                    window.location.reload();
                   }}
                 >
                   Cancel
