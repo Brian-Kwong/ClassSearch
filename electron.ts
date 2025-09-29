@@ -191,7 +191,11 @@ ipcMain.handle(
         return { success: false, error: `Failed to fetch page ${page}` };
       }
     }
-    return { success: true, data: allClasses };
+    // Filter for any duplicates just in case
+    const uniqueClasses = Array.from(
+      new Map(allClasses.map((item) => [JSON.stringify(item), item])).values(),
+    );
+    return { success: true, data: uniqueClasses };
   },
 );
 

@@ -17,6 +17,7 @@ import {
 } from "../components/rateMyProfessorFetcher";
 import { IoIosSettings } from "react-icons/io";
 import { useTheme } from "next-themes";
+import { Mutex, MutexInterface } from "async-mutex";
 import courseProcessorWorker from "../workers/courseProcessorWorkerFactory";
 import searchHistoryWorker from "../workers/searchHistoryWorkerFactory";
 import Settings from "../components/ui/settings";
@@ -123,17 +124,20 @@ const SearchPage = () => {
 
   const {
     searchOptions, // Available search options fetched from the university
-    searchResults, // Current search results from context
     setSearchResults, // Sets the search results in context
     searchQueryParams, // Current search parameters from the user
     setSearchQueryParams, // Sets the search parameters in context
     settings, // User's current settings from context
   } = useSearchContext();
 
+  const searchQueryParamsRef = React.useRef(searchQueryParams);
+
   // Searching status
-  let searching = false;
+  const mutex = useMemo(() => new Mutex(), []);
+  const lockRef = React.useRef<MutexInterface.Releaser | null>(null);
   const [fetchingAvailableSubjectCourses, setFetchingAvailableSubjectCourses] =
     useState(false);
+  const [searchingResults, setSearchingResults] = useState(false);
   const [fetchProgress, setFetchProgress] = useState(0);
 
   // Warning and error states
@@ -165,6 +169,7 @@ const SearchPage = () => {
     courseProcessorWorker.onmessage = async (event) => {
       const { action, url, searchParams, forSearch } = event.data;
       if (action === "IPC_REQUEST") {
+        console.log("IPC_REQUEST received from worker", event.data);
         const { success, data, error } = await window.electronAPI.fetchCourses(
           url,
           suppressMaxEntriesWarning,
@@ -189,7 +194,10 @@ const SearchPage = () => {
               duration: 4000,
             });
           }
-          searching = false;
+          if (lockRef.current) {
+            lockRef.current();
+          }
+          setSearchingResults(false);
           setFetchingAvailableSubjectCourses(false);
           return;
         }
@@ -219,7 +227,9 @@ const SearchPage = () => {
               parseFloat(searchQueryParams.instructorScore),
             );
           }
-          searching = false;
+          if (lockRef.current) {
+            lockRef.current();
+          }
           navigateToResults(data);
         } else {
           toaster.create({
@@ -228,22 +238,28 @@ const SearchPage = () => {
             description: "An unknown error occurred.",
             duration: 4000,
           });
-          searching = false;
+          if (lockRef.current) {
+            lockRef.current();
+          }
         }
       }
       if (action === "IPC_AVAILABLE_COURSES") {
         const { success, data } = event.data;
         if (success) {
-          searching = false;
+          if (lockRef.current) {
+            lockRef.current();
+          }
           setSearchQueryParams({
-            ...searchQueryParams,
+            ...searchQueryParamsRef.current,
             availableCourseNumbers: data.available_courses_set,
             availableInstructorFirstNames: data.instructorFirstNameSet,
             availableInstructorLastNames: data.instructorLastNameSet,
           });
           setFetchingAvailableSubjectCourses(false);
         } else {
-          searching = false;
+          if (lockRef.current) {
+            lockRef.current();
+          }
           toaster.create({
             type: "error",
             title: "Error fetching available subject courses",
@@ -279,8 +295,8 @@ const SearchPage = () => {
 
   const submitSearch = useCallback(async (performSearch: boolean) => {
     if (
-      searchQueryParams.searchTerm.length < 1 ||
-      searchQueryParams.searchTerm[0] === ""
+      searchQueryParamsRef.current.searchTerm.length < 1 ||
+      searchQueryParamsRef.current.searchTerm[0] === ""
     ) {
       if (triggerWarning || performSearch) {
         toaster.create({
@@ -294,7 +310,7 @@ const SearchPage = () => {
             label: "Select Default Term",
             onClick: () => {
               setSearchQueryParams({
-                ...searchQueryParams,
+                ...searchQueryParamsRef.current,
                 searchTerm: [searchOptions.selected_term],
                 availableCourseNumbers: [],
                 availableInstructorFirstNames: [],
@@ -307,19 +323,14 @@ const SearchPage = () => {
       }
       return;
     }
-    while (searching) {
-      // Wait for any ongoing search to finish
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
-      });
-    }
-    searching = true;
-    const url = `${redirectURL[university as keyof typeof redirectURL]}${classSearchEndpoint}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchQueryParams.subject.length > 0 ? searchQueryParams.subject[0] : ""}&catalog_nbr=${searchQueryParams.courseCatalogNum.length > 0 ? searchQueryParams.courseCatalogNum[0] : ""}&start_time_ge=${searchQueryParams.startTime.length > 0 ? searchQueryParams.startTime[0] : ""}&end_time_le=${searchQueryParams.endTime.length > 0 ? searchQueryParams.endTime[0] : ""}&days=${searchQueryParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchQueryParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchQueryParams.instructMode.length > 0 ? searchQueryParams.instructMode[0] : ""}&crse_attr_value=${searchQueryParams.courseAttributes.length > 0 ? searchQueryParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchQueryParams.instructorLastName.length > 0 ? searchQueryParams.instructorLastName[0] : ""}&instr_first_name=${searchQueryParams.instructorFirstName.length > 0 ? searchQueryParams.instructorFirstName[0] : ""}&units=${searchQueryParams.numberOfUnits.length > 0 ? searchQueryParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchQueryParams.searchTerm.length > 0 ? searchQueryParams.searchTerm[0] : ""}`;
+    lockRef.current = await mutex.acquire();
+    const url = `${redirectURL[university as keyof typeof redirectURL]}${classSearchEndpoint}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchQueryParamsRef.current.subject.length > 0 ? searchQueryParamsRef.current.subject[0] : ""}&catalog_nbr=${searchQueryParamsRef.current.courseCatalogNum.length > 0 ? searchQueryParamsRef.current.courseCatalogNum[0] : ""}&start_time_ge=${searchQueryParamsRef.current.startTime.length > 0 ? searchQueryParamsRef.current.startTime[0] : ""}&end_time_le=${searchQueryParamsRef.current.endTime.length > 0 ? searchQueryParamsRef.current.endTime[0] : ""}&days=${searchQueryParamsRef.current.dayOfTheWeek.length > 0 ? encodeURIComponent(searchQueryParamsRef.current.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchQueryParamsRef.current.instructMode.length > 0 ? searchQueryParamsRef.current.instructMode[0] : ""}&crse_attr_value=${searchQueryParamsRef.current.courseAttributes.length > 0 ? searchQueryParamsRef.current.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchQueryParamsRef.current.instructorLastName.length > 0 ? searchQueryParamsRef.current.instructorLastName[0] : ""}&instr_first_name=${searchQueryParamsRef.current.instructorFirstName.length > 0 ? searchQueryParamsRef.current.instructorFirstName[0] : ""}&units=${searchQueryParamsRef.current.numberOfUnits.length > 0 ? searchQueryParamsRef.current.numberOfUnits[0] : ""}&trigger_search=&term=${searchQueryParamsRef.current.searchTerm.length > 0 ? searchQueryParamsRef.current.searchTerm[0] : ""}`;
+    console.log("Constructed URL: ", url);
     courseProcessorWorker.postMessage({
       action: "fetchCourses",
       url,
       university,
-      params: searchQueryParams,
+      params: searchQueryParamsRef.current,
       forSearch: performSearch,
       cacheEnabled: settings["Enable Caching"] === "true",
       ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
@@ -327,21 +338,12 @@ const SearchPage = () => {
     if (performSearch) {
       searchHistoryWorker.postMessage({
         action: "saveSearch",
-        params: searchParams,
+        params: searchQueryParamsRef.current,
       });
     } else {
       setFetchingAvailableSubjectCourses(true);
     }
-  }, [searchQueryParams]);
-
-  useEffect(() => {
-    if (
-      searchQueryParams.subject.length > 0 &&
-      searchQueryParams.subject[0] !== ""
-    ) {
-      submitSearch(false);
-    }
-  }, [searchQueryParams.subject]);
+  }, []);
 
   useEffect(() => {
     if (selectedSearchHistoryIndex !== null) {
@@ -448,11 +450,14 @@ const SearchPage = () => {
             : currentMonth > 3
               ? "Spring"
               : "Winter";
-    setSearchQueryParams({
-      ...searchQueryParams,
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
       searchTerm: [currentTerm],
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
     });
-  }, []);
+  }, [availableTerms]);
 
   useEffect(() => {
     const removeListener = window.electronAPI.onFetchProgress(
@@ -466,119 +471,158 @@ const SearchPage = () => {
   }, []);
 
   // useCallback handlers for all selectors
-  const handleSubjectChange = React.useCallback((value: string[]) => {
-    if (value.length == 0 || value[0] === "") {
-      setSearchQueryParams({
-        ...searchQueryParams,
-        availableCourseNumbers: [],
-        availableInstructorFirstNames: [],
-        availableInstructorLastNames: [],
-        courseCatalogNum: [],
-        instructorFirstName: [],
-        instructorLastName: [],
-        subject: [],
-      });
-    } else {
-      setSearchQueryParams({
-        ...searchQueryParams,
-        subject: value,
-      });
-    }
-  }, [searchQueryParams.subject]);
-
-  const handleCourseCatalogNumChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        courseCatalogNum: value,
-      }),
-    [searchQueryParams.courseCatalogNum],
+  const handleSubjectChange = React.useCallback(
+    (value: string[]) => {
+      if (value.length == 0 || value[0] === "") {
+        searchQueryParamsRef.current = {
+          ...searchQueryParamsRef.current,
+          availableCourseNumbers: [],
+          availableInstructorFirstNames: [],
+          availableInstructorLastNames: [],
+          courseCatalogNum: [],
+          instructorFirstName: [],
+          instructorLastName: [],
+          subject: [],
+        };
+        setSearchQueryParams({
+          ...searchQueryParamsRef.current,
+        });
+      } else {
+        searchQueryParamsRef.current = {
+          ...searchQueryParamsRef.current,
+          subject: value,
+        };
+        setSearchQueryParams({
+          ...searchQueryParamsRef.current,
+        });
+        submitSearch(false);
+      }
+    },
+    [searchQueryParamsRef],
   );
 
-  const handleCourseAttributesChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        courseAttributes: value,
-      }),
-    [searchQueryParams.courseAttributes],
-  );
+  const handleCourseCatalogNumChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      courseCatalogNum: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
+
+  const handleCourseAttributesChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      courseAttributes: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
 
   const handleDayOfTheWeekChange = React.useCallback((value: string[]) => {
     if (value.includes("any")) {
-      setSearchQueryParams({
-        ...searchQueryParams,
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
         dayOfTheWeek: ["any"],
+      };
+      setSearchQueryParams({
+        ...searchQueryParamsRef.current,
       });
     } else if (value.includes("MTWTF")) {
-      setSearchQueryParams({
-        ...searchQueryParams,
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
         dayOfTheWeek: ["MTWTF"],
+      };
+      setSearchQueryParams({
+        ...searchQueryParamsRef.current,
       });
     } else {
-      setSearchQueryParams({
-        ...searchQueryParams,
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
         dayOfTheWeek: value,
+      };
+      setSearchQueryParams({
+        ...searchQueryParamsRef.current,
       });
     }
-  }, [searchQueryParams.dayOfTheWeek]);
+  }, []);
 
-  const handleSearchTermChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        searchTerm: value,
-      }),
-    [searchQueryParams.searchTerm],
-  );
-  const handleNumberOfUnitsChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        numberOfUnits: value,
-      }),
-    [searchQueryParams.numberOfUnits],
-  );
-  const handleStartTimeChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        startTime: value,
-      }),
-    [searchQueryParams.startTime],
-  );
-  const handleEndTimeChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        endTime: value,
-      }),
-    [searchQueryParams.endTime],
-  );
-  const handleInstructModeChange = React.useCallback(
-    (value: string[]) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
-        instructMode: value,
-      }),
-    [searchQueryParams.instructMode],
-  );
+  const handleSearchTermChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      searchTerm: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
+
+  const handleNumberOfUnitsChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      numberOfUnits: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
+
+  const handleStartTimeChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      startTime: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
+
+  const handleEndTimeChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      endTime: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
+
+  const handleInstructModeChange = React.useCallback((value: string[]) => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      instructMode: value,
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, []);
 
   const handleInstructorFirstNameChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setSearchQueryParams({
-        ...searchQueryParams,
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
         instructorFirstName: [e.target.value],
-      }),
-    [searchQueryParams.instructorFirstName],
-  );
-  const handleInstructorLastNameChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
+      };
       setSearchQueryParams({
-        ...searchQueryParams,
+        ...searchQueryParamsRef.current,
+      });
+    },
+    [],
+  );
+
+  const handleInstructorLastNameChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
         instructorLastName: [e.target.value],
-      }),
-    [searchQueryParams.instructorLastName],
+      };
+      setSearchQueryParams({
+        ...searchQueryParamsRef.current,
+      });
+    },
+    [],
   );
   const handleInstructorScoreChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -609,20 +653,23 @@ const SearchPage = () => {
       if (invalidInstructorScore) {
         return;
       }
-      setInvalidInstructorScore(false);
-      setSearchQueryParams({
-        ...searchQueryParams,
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
         instructorScore: e.target.value,
+      };
+      setSearchQueryParams({
+        ...searchQueryParamsRef.current,
       });
+      setInvalidInstructorScore(false);
     },
-    [searchQueryParams.instructorScore, invalidInstructorScore],
+    [searchQueryParamsRef, invalidInstructorScore],
   );
 
   return (
     <>
-      {1 !== 1 ? (
+      {searchingResults ? (
         <Loading message={`Searching for courses... ${fetchProgress}%`} />
-      ) : (availableTerms && availableTimes && subjectOptions && courseAttributeOptions && instructModeOptions && numberOfUnitsOptions ) && (
+      ) : (
         <>
           <div
             className={`${styles.searchFiltersContainer} ${theme === "system" ? (resolvedTheme === "dark" ? styles.dark : "") : theme === "dark" ? styles.dark : ""}`}
@@ -640,7 +687,7 @@ const SearchPage = () => {
             >
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={searchQueryParams.subject || [""]}
+                  selectedValue={searchQueryParamsRef.current.subject || [""]}
                   setSelectedValue={handleSubjectChange}
                   options={subjectOptions}
                   label="Subject"
@@ -693,7 +740,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={searchQueryParams.searchTerm}
+                  selectedValue={searchQueryParams.searchTerm || [""]}
                   setSelectedValue={handleSearchTermChange}
                   options={availableTerms}
                   label="Term"
@@ -743,12 +790,12 @@ const SearchPage = () => {
                     selectedValue={
                       searchQueryParams.instructorFirstName || [""]
                     }
-                    setSelectedValue={(value) =>
-                      setSearchQueryParams({
-                        ...searchQueryParams,
+                    setSelectedValue={(value) => {
+                      searchQueryParamsRef.current = {
+                        ...searchQueryParamsRef.current,
                         instructorFirstName: value,
-                      })
-                    }
+                      };
+                    }}
                     options={searchQueryParams.availableInstructorFirstNames}
                     label="Instructor First Name"
                     multiple={false}
@@ -767,12 +814,12 @@ const SearchPage = () => {
                 searchQueryParams.availableInstructorLastNames.length > 0 ? (
                   <SearchOptSelector
                     selectedValue={searchQueryParams.instructorLastName || [""]}
-                    setSelectedValue={(value) =>
-                      setSearchQueryParams({
-                        ...searchQueryParams,
+                    setSelectedValue={(value) => {
+                      searchQueryParamsRef.current = {
+                        ...searchQueryParamsRef.current,
                         instructorLastName: value,
-                      })
-                    }
+                      };
+                    }}
                     options={searchQueryParams.availableInstructorLastNames}
                     label="Instructor Last Name"
                     multiple={false}
@@ -826,7 +873,10 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <Button
-                  onClick={() => submitSearch(true)}
+                  onClick={() => {
+                    submitSearch(true);
+                    setSearchingResults(true);
+                  }}
                   className={styles.button}
                   width="100%"
                 >

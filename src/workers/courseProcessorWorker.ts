@@ -191,6 +191,7 @@ self.onmessage = async (event) => {
     forSearch,
     cacheEnabled,
     ttl,
+    lock,
   } = event.data;
   if (action === "fetchCourses") {
     const cached = await db.get(
@@ -213,6 +214,7 @@ self.onmessage = async (event) => {
           forSearch === true
             ? filterCoursesByParameters(cached.data, params)
             : processUniqCoursesAndProfessors(cached.data),
+        release: lock,
       });
       return;
     } else if (cached) {
@@ -221,9 +223,20 @@ self.onmessage = async (event) => {
         `${university}-${params.subject}-${params.searchTerm}`,
       );
     }
-    self.postMessage({ action: "IPC_REQUEST", url, searchParams: params });
+    self.postMessage({
+      action: "IPC_REQUEST",
+      url,
+      searchParams: params,
+      forSearch,
+      release: lock,
+    });
   } else if (action === "processData" && data) {
     const processedData = data as UniversityCourseResponse[];
+    console.log(
+      `Processed ${processedData.length} courses for ${
+        forSearch === true ? "search" : "available courses"
+      }`,
+    );
     if (cacheEnabled) {
       await db.put("coursesSearches", {
         url: `${university}-${params.subject}-${params.searchTerm}`,
@@ -242,6 +255,7 @@ self.onmessage = async (event) => {
         forSearch === true
           ? filterCoursesByParameters(processedData, params)
           : processUniqCoursesAndProfessors(processedData),
+      release: lock,
     });
   }
 };

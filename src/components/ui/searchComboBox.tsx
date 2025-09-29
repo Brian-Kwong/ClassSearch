@@ -55,6 +55,7 @@ const SearchOptSelector = ({
       size="md"
       onValueChange={handleValueChange}
       value={selectedValue}
+      defaultValue={selectedValue}
       onInputValueChange={handleInputValueChange}
       className={styles.inputBox}
     >
