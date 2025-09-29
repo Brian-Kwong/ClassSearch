@@ -77,6 +77,10 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   }, [searchResults]);
 
   useEffect(() => {
+    console.log(
+      "AAA Updating searchQueryParams:",
+      JSON.stringify(searchQueryParams, null, 2),
+    );
     window.sessionStorage.setItem(
       "searchQueryParams",
       JSON.stringify(searchQueryParams),

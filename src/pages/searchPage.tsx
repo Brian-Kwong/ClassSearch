@@ -46,19 +46,19 @@ const generate_available_terms = (termType: "Semester" | "Quarter") => {
   for (let yearOffset = -10; yearOffset <= 2; yearOffset++) {
     if (termType === "Quarter") {
       available_terms.push({
-        label: `${currentYear + yearOffset} Winter`,
+        label: `Winter ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}2`,
       });
       available_terms.push({
-        label: `${currentYear + yearOffset} Spring`,
+        label: `Spring ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}4`,
       });
       available_terms.push({
-        label: `${currentYear + yearOffset} Summer`,
+        label: `Summer ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}6`,
       });
       available_terms.push({
-        label: `${currentYear + yearOffset} Fall`,
+        label: `Fall ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}8`,
       });
     } else {
@@ -67,24 +67,45 @@ const generate_available_terms = (termType: "Semester" | "Quarter") => {
       // 2263 ==> Spring 2026
 
       available_terms.push({
-        label: `${currentYear + yearOffset} Winter/Intersession`,
+        label: `Winter/Intersession ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}1`,
       });
       available_terms.push({
-        label: `${currentYear + yearOffset} Spring`,
+        label: `Spring ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}3`,
       });
       available_terms.push({
-        label: `${currentYear + yearOffset} Summer`,
+        label: `Summer ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}5`,
       });
       available_terms.push({
-        label: `${currentYear + yearOffset} Fall`,
+        label: `Fall ${currentYear + yearOffset}`,
         value: `${+(Math.floor((currentYear + yearOffset) / 1000) * 100 + ((currentYear + yearOffset) % 100))}7`,
       });
     }
   }
   return available_terms;
+};
+
+const filterByInstructorScore = async (
+  university: string | null,
+  courses: UniversityCourseResponse[],
+  minScore: number | null,
+) => {
+  if (minScore === null || isNaN(minScore) || minScore < 1 || minScore > 5) {
+    return courses;
+  }
+  return await getProfessorRatings(university || "").then((ratings) => {
+    if (ratings) {
+      return courses.filter((course: UniversityCourseResponse) => {
+        const rating = findClosestTeacherRating(
+          ratings,
+          course.meetings[0]?.instructor || "",
+        );
+        return rating && rating.avgRating >= minScore;
+      });
+    }
+  });
 };
 
 const SearchPage = () => {
@@ -99,34 +120,21 @@ const SearchPage = () => {
       ? "Quarter"
       : "Semester",
   );
-  const currentMonth = new Date().getMonth();
 
   const {
-    searchOptions,
-    setSearchResults,
-    searchQueryParams,
-    setSearchQueryParams,
-    settings,
+    searchOptions, // Available search options fetched from the university
+    searchResults, // Current search results from context
+    setSearchResults, // Sets the search results in context
+    searchQueryParams, // Current search parameters from the user
+    setSearchQueryParams, // Sets the search parameters in context
+    settings, // User's current settings from context
   } = useSearchContext();
 
-  // Searching states
-  const [performSearch, setPerformSearch] = useState(false);
+  // Searching status
+  let searching = false;
   const [fetchingAvailableSubjectCourses, setFetchingAvailableSubjectCourses] =
     useState(false);
-  let searching = false;
   const [fetchProgress, setFetchProgress] = useState(0);
-
-  const [subject, setSubject] = useState<string[]>([]);
-  const [courseCatalogNum, setCourseCatalogNum] = useState<string[]>([]);
-  const [courseAttributes, setCourseAttributes] = useState<string[]>([]);
-  const [dayOfTheWeek, setDayOfTheWeek] = useState<string[]>([]);
-  const [numberOfUnits, setNumberOfUnits] = useState<string[]>([]);
-  const [startTime, setStartTime] = useState<string[]>([]);
-  const [endTime, setEndTime] = useState<string[]>([]);
-  const [instructMode, setInstructMode] = useState<string[]>([]);
-  const [instructorLastName, setInstructorLastName] = useState<string[]>([]);
-  const [instructorScore, setInstructorScore] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string[]>([]);
 
   // Warning and error states
   const [triggerWarning, setTriggerWarning] = useState(true);
@@ -135,15 +143,7 @@ const SearchPage = () => {
     searchParams.get("suppressMaxEntriesWarning") === "true" ||
     localStorage.getItem("suppressMaxEntriesWarning") === "true";
 
-  const [availableCourseNumbers, setAvailableCourseNumbers] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [availableInstructorFirstNames, setAvailableInstructorFirstNames] =
-    useState<{ label: string; value: string }[]>([]);
-  const [instructorFirstName, setInstructorFirstName] = useState<string[]>([]);
-  const [availableInstructorLastNames, setAvailableInstructorLastNames] =
-    useState<{ label: string; value: string }[]>([]);
-
+  // Search history
   const [searchHistoryList, setSearchHistoryList] = useState<
     {
       timestamp: number;
@@ -156,32 +156,14 @@ const SearchPage = () => {
   >(null);
 
   // Navigate to results page with data
-  const navigateToResults = useCallback(
-    (data: UniversityCourseResponse[]) => {
-      setSearchResults(data);
-      navigate(`/results?university=${university}`);
-    },
-    [navigate, university, searchOptions],
-  );
-
-  useEffect(() => {
-    const currentTerm = searchOptions.selected_term
-      ? searchOptions.selected_term
-      : currentMonth > 8
-        ? "Fall"
-        : currentMonth > 6
-          ? "Summer"
-          : termType === "Semester"
-            ? "Spring"
-            : currentMonth > 3
-              ? "Spring"
-              : "Winter";
-    setSearchTerm([currentTerm]);
-  }, [currentMonth, searchOptions.selected_term, termType]);
+  const navigateToResults = useCallback((data: UniversityCourseResponse[]) => {
+    setSearchResults(data);
+    navigate(`/results?university=${university}`);
+  }, []);
 
   useEffect(() => {
     courseProcessorWorker.onmessage = async (event) => {
-      const { action, url, searchParams } = event.data;
+      const { action, url, searchParams, forSearch } = event.data;
       if (action === "IPC_REQUEST") {
         const { success, data, error } = await window.electronAPI.fetchCourses(
           url,
@@ -199,9 +181,6 @@ const SearchPage = () => {
                 );
               },
             });
-            setPerformSearch(false);
-            setFetchingAvailableSubjectCourses(false);
-            return;
           } else {
             toaster.create({
               type: "error",
@@ -209,58 +188,73 @@ const SearchPage = () => {
               description: error || "An unknown error occurred.",
               duration: 4000,
             });
-            setPerformSearch(false);
-            setFetchingAvailableSubjectCourses(false);
-            return;
           }
+          searching = false;
+          setFetchingAvailableSubjectCourses(false);
+          return;
         }
-
         courseProcessorWorker.postMessage({
           action: "processData",
           url,
           data,
           params: searchParams,
-          forSearch: performSearch,
+          forSearch: forSearch,
           university: university,
           cacheEnabled: settings["Enable Caching"] === "true",
           ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
         }); // send the data to the worker for processing
       }
 
-      if (action === "IPC_RESPONSE") {
+      if (action === "IPC_COURSE_SEARCH") {
         // eslint-disable-next-line prefer-const
         let { success, data } = event.data;
-        searching = false;
-        if (performSearch && Array.isArray(data)) {
-          if (instructorScore && instructorScore !== "") {
-            const score = parseFloat(instructorScore);
-            data = await getProfessorRatings(university || "").then(
-              (ratings) => {
-                if (ratings) {
-                  return data.filter((course: UniversityCourseResponse) => {
-                    const rating = findClosestTeacherRating(
-                      ratings,
-                      course.meetings[0]?.instructor || "",
-                    );
-                    return rating && rating.avgRating >= score;
-                  });
-                }
-              },
+        if (success) {
+          if (
+            searchQueryParams.instructorScore &&
+            searchQueryParams.instructorScore !== ""
+          ) {
+            data = await filterByInstructorScore(
+              university,
+              data,
+              parseFloat(searchQueryParams.instructorScore),
             );
           }
+          searching = false;
           navigateToResults(data);
+        } else {
+          toaster.create({
+            type: "error",
+            title: "Error processing course data",
+            description: "An unknown error occurred.",
+            duration: 4000,
+          });
+          searching = false;
         }
+      }
+      if (action === "IPC_AVAILABLE_COURSES") {
+        const { success, data } = event.data;
         if (success) {
-          setAvailableCourseNumbers(data.available_courses_set);
-          setAvailableInstructorFirstNames(data.instructorFirstNameSet);
-          setAvailableInstructorLastNames(data.instructorLastNameSet);
+          searching = false;
+          setSearchQueryParams({
+            ...searchQueryParams,
+            availableCourseNumbers: data.available_courses_set,
+            availableInstructorFirstNames: data.instructorFirstNameSet,
+            availableInstructorLastNames: data.instructorLastNameSet,
+          });
           setFetchingAvailableSubjectCourses(false);
         } else {
-          console.error("Failed to process data.");
+          searching = false;
+          toaster.create({
+            type: "error",
+            title: "Error fetching available subject courses",
+            description: "An unknown error occurred.",
+            duration: 4000,
+          });
+          setFetchingAvailableSubjectCourses(false);
         }
       }
     };
-  }, [navigateToResults, performSearch, searchTerm]);
+  }, [searchQueryParams]);
 
   useEffect(() => {
     searchHistoryWorker.onmessage = (event) => {
@@ -283,8 +277,11 @@ const SearchPage = () => {
     };
   }, []);
 
-  const submitSearch = useCallback(async () => {
-    if (searchTerm.length < 1 || searchTerm[0] === "") {
+  const submitSearch = useCallback(async (performSearch: boolean) => {
+    if (
+      searchQueryParams.searchTerm.length < 1 ||
+      searchQueryParams.searchTerm[0] === ""
+    ) {
       if (triggerWarning || performSearch) {
         toaster.create({
           type: performSearch ? "error" : "warning",
@@ -296,7 +293,13 @@ const SearchPage = () => {
           action: {
             label: "Select Default Term",
             onClick: () => {
-              setSearchTerm([searchOptions.selected_term]);
+              setSearchQueryParams({
+                ...searchQueryParams,
+                searchTerm: [searchOptions.selected_term],
+                availableCourseNumbers: [],
+                availableInstructorFirstNames: [],
+                availableInstructorLastNames: [],
+              });
             },
           },
         });
@@ -311,26 +314,12 @@ const SearchPage = () => {
       });
     }
     searching = true;
-    const searchParams = {
-      subject: subject,
-      courseCatalogNum: courseCatalogNum,
-      courseAttributes: courseAttributes,
-      dayOfTheWeek: dayOfTheWeek,
-      numberOfUnits: numberOfUnits,
-      startTime: startTime,
-      endTime: endTime,
-      instructMode: instructMode,
-      instructorFirstName: instructorFirstName,
-      instructorLastName: instructorLastName,
-      instructorScore: instructorScore,
-      searchTerm: searchTerm,
-    };
-    const url = `${redirectURL[university as keyof typeof redirectURL]}${classSearchEndpoint}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchParams.subject.length > 0 ? searchParams.subject[0] : ""}&catalog_nbr=${searchParams.courseCatalogNum.length > 0 ? searchParams.courseCatalogNum[0] : ""}&start_time_ge=${searchParams.startTime.length > 0 ? searchParams.startTime[0] : ""}&end_time_le=${searchParams.endTime.length > 0 ? searchParams.endTime[0] : ""}&days=${searchParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchParams.instructMode.length > 0 ? searchParams.instructMode[0] : ""}&crse_attr_value=${searchParams.courseAttributes.length > 0 ? searchParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchParams.instructorLastName.length > 0 ? searchParams.instructorLastName[0] : ""}&instr_first_name=${searchParams.instructorFirstName.length > 0 ? searchParams.instructorFirstName[0] : ""}&units=${searchParams.numberOfUnits.length > 0 ? searchParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchParams.searchTerm.length > 0 ? searchParams.searchTerm[0] : ""}`;
+    const url = `${redirectURL[university as keyof typeof redirectURL]}${classSearchEndpoint}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchQueryParams.subject.length > 0 ? searchQueryParams.subject[0] : ""}&catalog_nbr=${searchQueryParams.courseCatalogNum.length > 0 ? searchQueryParams.courseCatalogNum[0] : ""}&start_time_ge=${searchQueryParams.startTime.length > 0 ? searchQueryParams.startTime[0] : ""}&end_time_le=${searchQueryParams.endTime.length > 0 ? searchQueryParams.endTime[0] : ""}&days=${searchQueryParams.dayOfTheWeek.length > 0 ? encodeURIComponent(searchQueryParams.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchQueryParams.instructMode.length > 0 ? searchQueryParams.instructMode[0] : ""}&crse_attr_value=${searchQueryParams.courseAttributes.length > 0 ? searchQueryParams.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchQueryParams.instructorLastName.length > 0 ? searchQueryParams.instructorLastName[0] : ""}&instr_first_name=${searchQueryParams.instructorFirstName.length > 0 ? searchQueryParams.instructorFirstName[0] : ""}&units=${searchQueryParams.numberOfUnits.length > 0 ? searchQueryParams.numberOfUnits[0] : ""}&trigger_search=&term=${searchQueryParams.searchTerm.length > 0 ? searchQueryParams.searchTerm[0] : ""}`;
     courseProcessorWorker.postMessage({
       action: "fetchCourses",
       url,
       university,
-      params: searchParams,
+      params: searchQueryParams,
       forSearch: performSearch,
       cacheEnabled: settings["Enable Caching"] === "true",
       ttl: parseInt(settings["Course Data Cache Duration"]) || 120,
@@ -340,73 +329,19 @@ const SearchPage = () => {
         action: "saveSearch",
         params: searchParams,
       });
+    } else {
+      setFetchingAvailableSubjectCourses(true);
     }
-    setFetchingAvailableSubjectCourses(true);
-  }, [
-    courseAttributes,
-    courseCatalogNum,
-    dayOfTheWeek,
-    endTime,
-    instructMode,
-    instructorFirstName,
-    instructorLastName,
-    instructorScore,
-    numberOfUnits,
-    performSearch,
-    searchOptions.class_search_fields,
-    searchOptions.selected_term,
-    startTime,
-    subject,
-    university,
-  ]);
+  }, [searchQueryParams]);
 
   useEffect(() => {
-    setSearchQueryParams({
-      subject,
-      courseCatalogNum,
-      courseAttributes,
-      dayOfTheWeek,
-      numberOfUnits,
-      startTime,
-      endTime,
-      instructMode,
-      instructorFirstName,
-      instructorLastName,
-      instructorScore,
-      searchTerm,
-      availableCourseNumbers,
-      availableInstructorFirstNames,
-      availableInstructorLastNames,
-    });
-  }, [
-    subject,
-    courseCatalogNum,
-    courseAttributes,
-    dayOfTheWeek,
-    numberOfUnits,
-    startTime,
-    endTime,
-    instructMode,
-    instructorFirstName,
-    instructorLastName,
-    instructorScore,
-    searchTerm,
-    availableCourseNumbers,
-    availableInstructorFirstNames,
-    availableInstructorLastNames,
-  ]);
-
-  useEffect(() => {
-    if (subject.length > 0 && subject[0] !== "" && !performSearch) {
-      submitSearch();
+    if (
+      searchQueryParams.subject.length > 0 &&
+      searchQueryParams.subject[0] !== ""
+    ) {
+      submitSearch(false);
     }
-  }, [subject]);
-
-  useEffect(() => {
-    if (performSearch) {
-      submitSearch();
-    }
-  }, [performSearch]);
+  }, [searchQueryParams.subject]);
 
   useEffect(() => {
     if (selectedSearchHistoryIndex !== null) {
@@ -416,9 +351,9 @@ const SearchPage = () => {
         )?.params || searchQueryParams;
       setSearchQueryParams({
         ...historyParams,
-        availableCourseNumbers,
-        availableInstructorFirstNames,
-        availableInstructorLastNames,
+        availableCourseNumbers: [],
+        availableInstructorFirstNames: [],
+        availableInstructorLastNames: [],
       });
     }
   }, [selectedSearchHistoryIndex]);
@@ -501,115 +436,22 @@ const SearchPage = () => {
   );
 
   useEffect(() => {
-    setSubject(
-      searchQueryParams.subject.length > 0 ? searchQueryParams.subject : [],
-    );
-  }, [subjectOptions]);
-
-  useEffect(() => {
-    setTimeout(
-      () =>
-        setCourseCatalogNum(
-          searchQueryParams.courseCatalogNum.length > 0
-            ? searchQueryParams.courseCatalogNum
-            : [],
-        ),
-      1000,
-    );
-  }, []);
-
-  useEffect(() => {
-    if (
-      searchQueryParams.searchTerm.length > 0 &&
-      searchQueryParams.searchTerm[0] !== ""
-    ) {
-      setSearchTerm(searchQueryParams.searchTerm);
-    }
-  }, [availableTerms]);
-
-  useEffect(() => {
-    setStartTime(
-      searchQueryParams.startTime.length > 0 ? searchQueryParams.startTime : [],
-    );
-    setEndTime(
-      searchQueryParams.endTime.length > 0 ? searchQueryParams.endTime : [],
-    );
-  }, [availableTimes]);
-
-  useEffect(() => {
-    setCourseAttributes(
-      searchQueryParams.courseAttributes.length > 0
-        ? searchQueryParams.courseAttributes
-        : [],
-    );
-  }, [courseAttributeOptions]);
-
-  useEffect(() => {
-    setInstructMode(
-      searchQueryParams.instructMode.length > 0
-        ? searchQueryParams.instructMode
-        : [],
-    );
-  }, [instructModeOptions]);
-
-  useEffect(() => {
-    setNumberOfUnits(
-      searchQueryParams.numberOfUnits.length > 0
-        ? searchQueryParams.numberOfUnits
-        : [],
-    );
-  }, [numberOfUnitsOptions]);
-
-  useEffect(() => {
-    setTimeout(
-      () =>
-        setInstructorFirstName(
-          searchQueryParams.instructorFirstName.length > 0
-            ? searchQueryParams.instructorFirstName
-            : [],
-        ),
-      1000,
-    );
-  }, []);
-
-  useEffect(() => {
-    setTimeout(
-      () =>
-        setInstructorLastName(
-          searchQueryParams.instructorLastName.length > 0
-            ? searchQueryParams.instructorLastName
-            : [],
-        ),
-      1000,
-    );
-  }, []);
-
-  useEffect(() => {
-    setDayOfTheWeek(
-      searchQueryParams.dayOfTheWeek.length > 0
-        ? searchQueryParams.dayOfTheWeek
-        : [],
-    );
-  }, [dayOfTheWeekOptions]);
-
-  useEffect(() => {
-    setInstructorScore(searchQueryParams.instructorScore || "");
-  }, []);
-
-  // useCallback handlers for all selectors
-  const handleSubjectChange = React.useCallback((value: string[]) => {
-    if (value.length == 0 || value[0] === "") {
-      searching = false;
-      setAvailableCourseNumbers([]);
-      setAvailableInstructorFirstNames([]);
-      setAvailableInstructorLastNames([]);
-      setCourseCatalogNum([]);
-      setInstructorFirstName([]);
-      setInstructorLastName([]);
-      setSubject([]);
-    } else {
-      setSubject(value);
-    }
+    const currentMonth = new Date().getMonth();
+    const currentTerm = searchOptions.selected_term
+      ? searchOptions.selected_term
+      : currentMonth > 8
+        ? "Fall"
+        : currentMonth > 6
+          ? "Summer"
+          : termType === "Semester"
+            ? "Spring"
+            : currentMonth > 3
+              ? "Spring"
+              : "Winter";
+    setSearchQueryParams({
+      ...searchQueryParams,
+      searchTerm: [currentTerm],
+    });
   }, []);
 
   useEffect(() => {
@@ -623,49 +465,120 @@ const SearchPage = () => {
     };
   }, []);
 
+  // useCallback handlers for all selectors
+  const handleSubjectChange = React.useCallback((value: string[]) => {
+    if (value.length == 0 || value[0] === "") {
+      setSearchQueryParams({
+        ...searchQueryParams,
+        availableCourseNumbers: [],
+        availableInstructorFirstNames: [],
+        availableInstructorLastNames: [],
+        courseCatalogNum: [],
+        instructorFirstName: [],
+        instructorLastName: [],
+        subject: [],
+      });
+    } else {
+      setSearchQueryParams({
+        ...searchQueryParams,
+        subject: value,
+      });
+    }
+  }, [searchQueryParams.subject]);
+
+  const handleCourseCatalogNumChange = React.useCallback(
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        courseCatalogNum: value,
+      }),
+    [searchQueryParams.courseCatalogNum],
+  );
+
   const handleCourseAttributesChange = React.useCallback(
-    (value: string[]) => setCourseAttributes(value),
-    [],
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        courseAttributes: value,
+      }),
+    [searchQueryParams.courseAttributes],
   );
 
   const handleDayOfTheWeekChange = React.useCallback((value: string[]) => {
     if (value.includes("any")) {
-      setDayOfTheWeek(["any"]);
+      setSearchQueryParams({
+        ...searchQueryParams,
+        dayOfTheWeek: ["any"],
+      });
     } else if (value.includes("MTWTF")) {
-      setDayOfTheWeek(["MTWTF"]);
+      setSearchQueryParams({
+        ...searchQueryParams,
+        dayOfTheWeek: ["MTWTF"],
+      });
     } else {
-      setDayOfTheWeek(value);
+      setSearchQueryParams({
+        ...searchQueryParams,
+        dayOfTheWeek: value,
+      });
     }
-  }, []);
+  }, [searchQueryParams.dayOfTheWeek]);
+
   const handleSearchTermChange = React.useCallback(
-    (value: string[]) => setSearchTerm(value),
-    [],
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        searchTerm: value,
+      }),
+    [searchQueryParams.searchTerm],
   );
   const handleNumberOfUnitsChange = React.useCallback(
-    (value: string[]) => setNumberOfUnits(value),
-    [],
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        numberOfUnits: value,
+      }),
+    [searchQueryParams.numberOfUnits],
   );
   const handleStartTimeChange = React.useCallback(
-    (value: string[]) => setStartTime(value),
-    [],
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        startTime: value,
+      }),
+    [searchQueryParams.startTime],
   );
   const handleEndTimeChange = React.useCallback(
-    (value: string[]) => setEndTime(value),
-    [],
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        endTime: value,
+      }),
+    [searchQueryParams.endTime],
   );
   const handleInstructModeChange = React.useCallback(
-    (value: string[]) => setInstructMode(value),
-    [],
+    (value: string[]) =>
+      setSearchQueryParams({
+        ...searchQueryParams,
+        instructMode: value,
+      }),
+    [searchQueryParams.instructMode],
   );
+
   const handleInstructorFirstNameChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
-      setInstructorFirstName([e.target.value]),
-    [],
+      setSearchQueryParams({
+        ...searchQueryParams,
+        instructorFirstName: [e.target.value],
+      }),
+    [searchQueryParams.instructorFirstName],
   );
   const handleInstructorLastNameChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
-      setInstructorLastName([e.target.value]),
-    [],
+      setSearchQueryParams({
+        ...searchQueryParams,
+        instructorLastName: [e.target.value],
+      }),
+    [searchQueryParams.instructorLastName],
   );
   const handleInstructorScoreChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -697,16 +610,19 @@ const SearchPage = () => {
         return;
       }
       setInvalidInstructorScore(false);
-      setInstructorScore(e.target.value);
+      setSearchQueryParams({
+        ...searchQueryParams,
+        instructorScore: e.target.value,
+      });
     },
-    [],
+    [searchQueryParams.instructorScore, invalidInstructorScore],
   );
 
   return (
     <>
-      {performSearch ? (
+      {1 !== 1 ? (
         <Loading message={`Searching for courses... ${fetchProgress}%`} />
-      ) : (
+      ) : (availableTerms && availableTimes && subjectOptions && courseAttributeOptions && instructModeOptions && numberOfUnitsOptions ) && (
         <>
           <div
             className={`${styles.searchFiltersContainer} ${theme === "system" ? (resolvedTheme === "dark" ? styles.dark : "") : theme === "dark" ? styles.dark : ""}`}
@@ -724,7 +640,7 @@ const SearchPage = () => {
             >
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={subject || [""]}
+                  selectedValue={searchQueryParams.subject || [""]}
                   setSelectedValue={handleSubjectChange}
                   options={subjectOptions}
                   label="Subject"
@@ -732,26 +648,29 @@ const SearchPage = () => {
                 />
               </GridItem>
               <GridItem colSpan={1}>
-                {availableCourseNumbers && availableCourseNumbers.length > 0 ? (
+                {searchQueryParams.availableCourseNumbers &&
+                searchQueryParams.availableCourseNumbers.length > 0 ? (
                   <SearchOptSelector
-                    selectedValue={courseCatalogNum || [""]}
-                    setSelectedValue={setCourseCatalogNum}
-                    options={availableCourseNumbers}
+                    selectedValue={searchQueryParams.courseCatalogNum || [""]}
+                    setSelectedValue={handleCourseCatalogNumChange}
+                    options={searchQueryParams.availableCourseNumbers}
                     label="Course Catalog Number"
                     multiple={false}
                   />
                 ) : (
                   <InputBox
                     label="Course Catalog Number"
-                    value={courseCatalogNum[0] || ""}
-                    onChange={(e) => setCourseCatalogNum([e.target.value])}
+                    value={searchQueryParams.courseCatalogNum[0] || ""}
+                    onChange={(e) =>
+                      handleCourseCatalogNumChange([e.target.value])
+                    }
                     loadingData={fetchingAvailableSubjectCourses}
                   />
                 )}
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={courseAttributes || [""]}
+                  selectedValue={searchQueryParams.courseAttributes || [""]}
                   setSelectedValue={handleCourseAttributesChange}
                   options={courseAttributeOptions}
                   label="Course Attributes"
@@ -760,13 +679,13 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={dayOfTheWeek || [""]}
+                  selectedValue={searchQueryParams.dayOfTheWeek || [""]}
                   setSelectedValue={handleDayOfTheWeekChange}
                   options={dayOfTheWeekOptions}
                   label="Day of the Week"
                   multiple={
-                    dayOfTheWeek.includes("any") ||
-                    dayOfTheWeek.includes("MTWTF")
+                    searchQueryParams.dayOfTheWeek.includes("any") ||
+                    searchQueryParams.dayOfTheWeek.includes("MTWTF")
                       ? false
                       : true
                   }
@@ -774,7 +693,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={searchTerm || [""]}
+                  selectedValue={searchQueryParams.searchTerm}
                   setSelectedValue={handleSearchTermChange}
                   options={availableTerms}
                   label="Term"
@@ -783,7 +702,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={numberOfUnits || [""]}
+                  selectedValue={searchQueryParams.numberOfUnits || [""]}
                   setSelectedValue={handleNumberOfUnitsChange}
                   options={numberOfUnitsOptions}
                   label="Number of Units"
@@ -792,7 +711,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={startTime || [""]}
+                  selectedValue={searchQueryParams.startTime || [""]}
                   setSelectedValue={handleStartTimeChange}
                   options={availableTimes}
                   label="Start Time"
@@ -801,7 +720,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={endTime || [""]}
+                  selectedValue={searchQueryParams.endTime || [""]}
                   setSelectedValue={handleEndTimeChange}
                   options={availableTimes}
                   label="End Time"
@@ -810,7 +729,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <SearchOptSelector
-                  selectedValue={instructMode || [""]}
+                  selectedValue={searchQueryParams.instructMode || [""]}
                   setSelectedValue={handleInstructModeChange}
                   options={instructModeOptions}
                   label="Instruction Mode"
@@ -818,38 +737,50 @@ const SearchPage = () => {
                 />
               </GridItem>
               <GridItem colSpan={1}>
-                {availableInstructorFirstNames &&
-                availableInstructorFirstNames.length > 0 ? (
+                {searchQueryParams.availableInstructorFirstNames &&
+                searchQueryParams.availableInstructorFirstNames.length > 0 ? (
                   <SearchOptSelector
-                    selectedValue={instructorFirstName || [""]}
-                    setSelectedValue={setInstructorFirstName}
-                    options={availableInstructorFirstNames}
+                    selectedValue={
+                      searchQueryParams.instructorFirstName || [""]
+                    }
+                    setSelectedValue={(value) =>
+                      setSearchQueryParams({
+                        ...searchQueryParams,
+                        instructorFirstName: value,
+                      })
+                    }
+                    options={searchQueryParams.availableInstructorFirstNames}
                     label="Instructor First Name"
                     multiple={false}
                   />
                 ) : (
                   <InputBox
                     label="Instructor First Name"
-                    value={instructorFirstName[0] || ""}
+                    value={searchQueryParams.instructorFirstName[0] || ""}
                     onChange={handleInstructorFirstNameChange}
                     loadingData={fetchingAvailableSubjectCourses}
                   />
                 )}
               </GridItem>
               <GridItem colSpan={1}>
-                {availableInstructorLastNames &&
-                availableInstructorLastNames.length > 0 ? (
+                {searchQueryParams.availableInstructorLastNames &&
+                searchQueryParams.availableInstructorLastNames.length > 0 ? (
                   <SearchOptSelector
-                    selectedValue={instructorLastName || [""]}
-                    setSelectedValue={setInstructorLastName}
-                    options={availableInstructorLastNames}
+                    selectedValue={searchQueryParams.instructorLastName || [""]}
+                    setSelectedValue={(value) =>
+                      setSearchQueryParams({
+                        ...searchQueryParams,
+                        instructorLastName: value,
+                      })
+                    }
+                    options={searchQueryParams.availableInstructorLastNames}
                     label="Instructor Last Name"
                     multiple={false}
                   />
                 ) : (
                   <InputBox
                     label="Instructor Last Name"
-                    value={instructorLastName[0] || ""}
+                    value={searchQueryParams.instructorLastName[0] || ""}
                     onChange={handleInstructorLastNameChange}
                     loadingData={fetchingAvailableSubjectCourses}
                   />
@@ -858,7 +789,7 @@ const SearchPage = () => {
               <GridItem colSpan={1}>
                 <InputBox
                   label="Instructor Score"
-                  value={instructorScore}
+                  value={searchQueryParams.instructorScore}
                   onChange={handleInstructorScoreChange}
                 />
               </GridItem>
@@ -895,7 +826,7 @@ const SearchPage = () => {
               </GridItem>
               <GridItem colSpan={1}>
                 <Button
-                  onClick={() => setPerformSearch(true)}
+                  onClick={() => submitSearch(true)}
                   className={styles.button}
                   width="100%"
                 >

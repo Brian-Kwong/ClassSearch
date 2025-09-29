@@ -14,7 +14,7 @@ self.onerror = (error) => {
   console.error("An error occurred in the course processor worker:", error);
 };
 
-const processData = (data: UniversityCourseResponse[]) => {
+const processUniqCoursesAndProfessors = (data: UniversityCourseResponse[]) => {
   const seen = new Set();
   const available_courses_set = data
     .map((course) => {
@@ -55,7 +55,7 @@ const processData = (data: UniversityCourseResponse[]) => {
   };
 };
 
-const filterData = (
+const filterCoursesByParameters = (
   data: UniversityCourseResponse[],
   searchParams: UserSearchRequestTypes,
 ) => {
@@ -204,13 +204,15 @@ self.onmessage = async (event) => {
       isSubsetOfParams(params, cached.params)
     ) {
       self.postMessage({
-        action: "IPC_RESPONSE",
+        action:
+          forSearch === true ? "IPC_COURSE_SEARCH" : "IPC_AVAILABLE_COURSES",
         success: true,
         searchParams: params,
+        forSearch: forSearch,
         data:
           forSearch === true
-            ? filterData(cached.data, params)
-            : processData(cached.data),
+            ? filterCoursesByParameters(cached.data, params)
+            : processUniqCoursesAndProfessors(cached.data),
       });
       return;
     } else if (cached) {
@@ -231,13 +233,15 @@ self.onmessage = async (event) => {
       });
     }
     self.postMessage({
-      action: "IPC_RESPONSE",
+      action:
+        forSearch === true ? "IPC_COURSE_SEARCH" : "IPC_AVAILABLE_COURSES",
       searchParams: params,
       success: true,
+      forSearch: forSearch,
       data:
         forSearch === true
-          ? filterData(processedData, params)
-          : processData(processedData),
+          ? filterCoursesByParameters(processedData, params)
+          : processUniqCoursesAndProfessors(processedData),
     });
   }
 };

@@ -51,7 +51,6 @@ const createNewApp = () => {
         enableBlinkFeatures: "EnableWebWorkerInspection",
       },
     });
-
     persistentSession = session.fromPartition("persist:login");
     if (app.isPackaged) {
       // Production mode: load the local index.html
