@@ -17,14 +17,8 @@ import DaysOfTheWeek from "../../assets/daysOfWeek.svg?react";
 import React from "react";
 import fetchClassDetails from "../classDetailFetcher";
 import styles from "../../css-styles/classInfoCard.module.css";
+import formatTime from "../time";
 
-function formatTime(timeString: string): string | undefined {
-  try {
-    return timeString.replace(".", ":").replace(".", ":").split(".")[0];
-  } catch {
-    return undefined; // If failed to parse just return original string
-  }
-}
 const PREREQUISITE_REGEX = /Prerequisite: (.+?)\./;
 
 const ClassInfoCard = ({
@@ -32,11 +26,13 @@ const ClassInfoCard = ({
   course,
   iconName,
   professorRating,
+  timeFormat,
 }: {
   university: string;
   course: UniversityCourseResponse;
   iconName: { lib: string; name: string };
   professorRating?: TeacherRatings;
+  timeFormat?: "12hr" | "24hr";
 }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -233,7 +229,7 @@ const ClassInfoCard = ({
                       <Text
                         textStyle="label"
                         color={textColor}
-                      >{`${formatTime(course.meetings[0]?.start_time) || ""} - ${formatTime(course.meetings[0]?.end_time) || ""}`}</Text>
+                      >{`${formatTime(course.meetings[0]?.start_time, timeFormat) || ""} - ${formatTime(course.meetings[0]?.end_time, timeFormat) || ""}`}</Text>
                     </HStack>
                     <HStack>
                       <Icon as={DaysOfTheWeek} boxSize={{ base: 8 }} />

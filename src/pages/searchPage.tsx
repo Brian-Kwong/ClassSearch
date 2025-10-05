@@ -249,11 +249,14 @@ const SearchPage = () => {
           if (lockRef.current) {
             lockRef.current();
           }
-          setSearchQueryParams({
+          searchQueryParamsRef.current = {
             ...searchQueryParamsRef.current,
             availableCourseNumbers: data.available_courses_set,
             availableInstructorFirstNames: data.instructorFirstNameSet,
             availableInstructorLastNames: data.instructorLastNameSet,
+          };
+          setSearchQueryParams({
+            ...searchQueryParamsRef.current,
           });
           setFetchingAvailableSubjectCourses(false);
         } else {
@@ -270,7 +273,7 @@ const SearchPage = () => {
         }
       }
     };
-  }, [searchQueryParams]);
+  }, []);
 
   useEffect(() => {
     searchHistoryWorker.onmessage = (event) => {

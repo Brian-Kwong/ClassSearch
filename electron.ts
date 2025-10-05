@@ -13,6 +13,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Worker } from "worker_threads";
 import { pipeline, env } from "@huggingface/transformers";
+import determineSystemTimeFormat from "node_24hr_time_resolver";
 import fs from "fs";
 // import fetch from 'node-fetch-cache';
 
@@ -85,6 +86,10 @@ autoUpdater.on("update-downloaded", async () => {
 ipcMain.handle(`firstLogin`, async (_event, params: { url: string }) => {
   const result = await makeLoginWindow(params.url, persistentSession!, true);
   return result;
+});
+
+ipcMain.handle(`getSystemTimeFormat`, () => {
+  return determineSystemTimeFormat() === "24hr" ? "24hr" : "12hr";
 });
 
 const getCookies = async (persistentSession: Session | null) => {

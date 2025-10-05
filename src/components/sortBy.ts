@@ -92,15 +92,14 @@ const sortCoursesBy = (
       });
       break;
     case "time":
+      // Always put N/A last
       sortedCourses.sort((a, b) => {
         const timeA =
-          a.meetings && a.meetings.length > 0
-            ? a.meetings[0].start_time
-            : "00:00";
+          a.meetings && a.meetings.length > 0 ? a.meetings[0].start_time : "";
         const timeB =
-          b.meetings && b.meetings.length > 0
-            ? b.meetings[0].start_time
-            : "00:00";
+          b.meetings && b.meetings.length > 0 ? b.meetings[0].start_time : "";
+        if (timeA === "" && timeB !== "") return 1;
+        if (timeA !== "" && timeB === "") return -1;
         return timeA.localeCompare(timeB);
       });
       break;

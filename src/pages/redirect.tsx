@@ -20,6 +20,7 @@ declare global {
       fetchCourseDetails: (
         url: string,
       ) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+      getSystemTimeFormat: () => "12hr" | "24hr";
       getModelPath: () => Promise<string | null>;
       getRMPInfo: (
         school: string,

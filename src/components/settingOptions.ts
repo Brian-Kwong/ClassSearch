@@ -22,6 +22,7 @@ const defaultSettings: { [key: string]: string } = {
   "Class Details Cache Duration": "1",
   "Max Number of Search History Entries": "1024",
   "Results Per Page": "20",
+  "Time Format": "system",
   "Default Sort Order": "courseNumber",
   "Prefetch Details when Hovering": "true",
   "Prefetch Delay (ms)": "300",
@@ -145,6 +146,14 @@ const appearanceOptions = createListCollection({
   ],
 });
 
+const timeFormatOptions = createListCollection({
+  items: [
+    { label: "12-hour (e.g., 3:00 PM)", value: "12hr" },
+    { label: "24-hour (e.g., 15:00)", value: "24hr" },
+    { label: "System Default", value: "system" },
+  ],
+});
+
 const viewSettingsOptions: SettingOption[] = [
   {
     setting: "Results Per Page",
@@ -158,6 +167,12 @@ const viewSettingsOptions: SettingOption[] = [
     description: "Set the default sort order for search results.",
     settingType: "selection",
     options: sortByList,
+  },
+  {
+    setting: "Time Format",
+    description: "Set the preferred time format for displaying times.",
+    settingType: "selection",
+    options: timeFormatOptions,
   },
   {
     setting: "Prefetch Details when Hovering",
@@ -203,10 +218,17 @@ const settingsCategories = [
   { category: "Other Settings", options: otherSettingsOptions },
 ];
 
+// Recover corrupt settings by merging with default settings
+const recoverSettings = (settings: { [key: string]: string }) => {
+  // Merge default settings with provided settings, without mutating the input object
+  return { ...defaultSettings, ...settings };
+};
+
 export {
   settingsCategories,
   sortByList,
   resultsPerPageOptions,
   appearanceOptions,
   defaultSettings,
+  recoverSettings,
 };

@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("searchRequest", { url, maxEntriesWarning }),
   fetchCourseDetails: (url: string) =>
     ipcRenderer.invoke("detailRequest", { url }),
+  getSystemTimeFormat: () => ipcRenderer.invoke("getSystemTimeFormat"),
   getModelPath: () => ipcRenderer.invoke("getModelPath"),
   getRMPInfo: (school: string) => ipcRenderer.invoke("getRMPInfo", { school }),
   semanticSearch: {

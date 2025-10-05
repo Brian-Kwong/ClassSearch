@@ -5,7 +5,7 @@ import {
   UserSearchRequestTypes,
 } from "../types";
 import { searchDataContext } from "./contextFactory";
-import { defaultSettings } from "../settingOptions";
+import { defaultSettings, recoverSettings } from "../settingOptions";
 
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   const [searchOptions, setSearchOptions] = useState<SearchParamJSON>(
@@ -58,7 +58,7 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [settings, setSettings] = useState<{ [key: string]: string }>(
     window.localStorage.getItem("settings")
-      ? JSON.parse(window.localStorage.getItem("settings")!)
+      ? recoverSettings(JSON.parse(window.localStorage.getItem("settings")!))
       : defaultSettings,
   );
 

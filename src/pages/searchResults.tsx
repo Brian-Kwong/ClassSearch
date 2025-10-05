@@ -48,6 +48,19 @@ const SearchResultsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagedResults, setPagedResults] = useState(searchResults || []);
   const resultsPerPage = parseInt(settings["Results Per Page"]) || 10;
+  const [timeFormat, setTimeFormat] = useState<"12hr" | "24hr">("12hr");
+
+  useEffect(() => {
+    async function fetchTimeFormat() {
+      if (settings["Time Format"] === "system") {
+        const format = await window.electronAPI.getSystemTimeFormat();
+        setTimeFormat(format);
+      } else {
+        setTimeFormat(settings["Time Format"] as "12hr" | "24hr");
+      }
+    }
+    fetchTimeFormat();
+  }, [settings]);
 
   useEffect(() => {
     async function loadModel() {
@@ -221,6 +234,7 @@ const SearchResultsPage = () => {
                     )
                   : undefined
               }
+              timeFormat={timeFormat}
             />
           )}
         />
