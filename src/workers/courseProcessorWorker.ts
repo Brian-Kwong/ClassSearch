@@ -232,11 +232,6 @@ self.onmessage = async (event) => {
     });
   } else if (action === "processData" && data) {
     const processedData = data as UniversityCourseResponse[];
-    console.log(
-      `Processed ${processedData.length} courses for ${
-        forSearch === true ? "search" : "available courses"
-      }`,
-    );
     if (cacheEnabled) {
       await db.put("coursesSearches", {
         url: `${university}-${params.subject}-${params.searchTerm}`,

@@ -169,7 +169,6 @@ const SearchPage = () => {
     courseProcessorWorker.onmessage = async (event) => {
       const { action, url, searchParams, forSearch } = event.data;
       if (action === "IPC_REQUEST") {
-        console.log("IPC_REQUEST received from worker", event.data);
         const { success, data, error } = await window.electronAPI.fetchCourses(
           url,
           suppressMaxEntriesWarning,
@@ -328,7 +327,6 @@ const SearchPage = () => {
     }
     lockRef.current = await mutex.acquire();
     const url = `${redirectURL[university as keyof typeof redirectURL]}${classSearchEndpoint}?institution=${searchOptions.class_search_fields[0].INSTITUTION}&subject=${searchQueryParamsRef.current.subject.length > 0 ? searchQueryParamsRef.current.subject[0] : ""}&catalog_nbr=${searchQueryParamsRef.current.courseCatalogNum.length > 0 ? searchQueryParamsRef.current.courseCatalogNum[0] : ""}&start_time_ge=${searchQueryParamsRef.current.startTime.length > 0 ? searchQueryParamsRef.current.startTime[0] : ""}&end_time_le=${searchQueryParamsRef.current.endTime.length > 0 ? searchQueryParamsRef.current.endTime[0] : ""}&days=${searchQueryParamsRef.current.dayOfTheWeek.length > 0 ? encodeURIComponent(searchQueryParamsRef.current.dayOfTheWeek.join(",")) : ""}&instruction_mode=${searchQueryParamsRef.current.instructMode.length > 0 ? searchQueryParamsRef.current.instructMode[0] : ""}&crse_attr_value=${searchQueryParamsRef.current.courseAttributes.length > 0 ? searchQueryParamsRef.current.courseAttributes[0].replaceAll(" ", "+") : ""}&instructor_name=${searchQueryParamsRef.current.instructorLastName.length > 0 ? searchQueryParamsRef.current.instructorLastName[0] : ""}&instr_first_name=${searchQueryParamsRef.current.instructorFirstName.length > 0 ? searchQueryParamsRef.current.instructorFirstName[0] : ""}&units=${searchQueryParamsRef.current.numberOfUnits.length > 0 ? searchQueryParamsRef.current.numberOfUnits[0] : ""}&trigger_search=&term=${searchQueryParamsRef.current.searchTerm.length > 0 ? searchQueryParamsRef.current.searchTerm[0] : ""}`;
-    console.log("Constructed URL: ", url);
     courseProcessorWorker.postMessage({
       action: "fetchCourses",
       url,
