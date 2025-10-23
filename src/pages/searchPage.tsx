@@ -445,25 +445,31 @@ const SearchPage = () => {
   );
 
   useEffect(() => {
-    const currentMonth = new Date().getMonth();
-    const currentTerm = searchOptions.selected_term
-      ? searchOptions.selected_term
-      : currentMonth > 8
-        ? "Fall"
-        : currentMonth > 6
-          ? "Summer"
-          : termType === "Semester"
-            ? "Spring"
-            : currentMonth > 3
+    if (
+      !searchQueryParamsRef.current.searchTerm ||
+      searchQueryParamsRef.current.searchTerm.length === 0 ||
+      searchQueryParamsRef.current.searchTerm[0] === ""
+    ) {
+      const currentMonth = new Date().getMonth();
+      const currentTerm = searchOptions.selected_term
+        ? searchOptions.selected_term
+        : currentMonth > 8
+          ? "Fall"
+          : currentMonth > 6
+            ? "Summer"
+            : termType === "Semester"
               ? "Spring"
-              : "Winter";
-    searchQueryParamsRef.current = {
-      ...searchQueryParamsRef.current,
-      searchTerm: [currentTerm],
-    };
-    setSearchQueryParams({
-      ...searchQueryParamsRef.current,
-    });
+              : currentMonth > 3
+                ? "Spring"
+                : "Winter";
+      searchQueryParamsRef.current = {
+        ...searchQueryParamsRef.current,
+        searchTerm: [currentTerm],
+      };
+      setSearchQueryParams({
+        ...searchQueryParamsRef.current,
+      });
+    }
   }, [availableTerms]);
 
   useEffect(() => {
