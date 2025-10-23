@@ -1,6 +1,6 @@
 # Getting Started
 
-Class search is a interactive desktop application that empowers you to search for classes at your university. It uses the same backend API as your institution allowing for up-to date information on offered courses and live seat availability. With advanced filtering options, you can easily find classes that fit your schedule and take the stress out of registration.
+Class search is an interactive desktop application that empowers you to search for classes at your university. It uses the same backend API as your institution allowing for up-to date information on offered courses and live seat availability. With advanced filtering options, you can easily find classes that fit your schedule and take the stress out of registration.
 
 **Note**: This application is currently in active development and is currently in beta. While the core functionality is functional and tested, you may still encounter bugs or incomplete features. Please report any issues you find on the [GitHub Issues Page](https://github.com/Brian-Kwong/CSUClassSearch/issues). Thank you for your understanding and support!
 
