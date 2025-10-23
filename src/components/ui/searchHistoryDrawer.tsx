@@ -11,14 +11,21 @@ type SearchHistoryDrawerProps = {
     params: UserSearchRequestTypes;
   }[];
   setSelectedSearchHistoryIndex?: (index: number | null) => void;
+  university: string;
 };
 
 const HistoryDrawer = ({
   openButton,
   searchHistory,
   setSelectedSearchHistoryIndex,
+  university,
 }: SearchHistoryDrawerProps) => {
   const { theme, resolvedTheme } = useTheme();
+
+  // Filter for any search history that are not this university
+  const thisUniversityHistory = searchHistory.filter(
+    (item) => item.params.university === university
+  );
 
   return (
     <Drawer.Root>
@@ -35,10 +42,10 @@ const HistoryDrawer = ({
             <Drawer.Body>
               <Virtuoso
                 style={{ height: "85vh", width: "100%" }}
-                totalCount={searchHistory.length}
+                totalCount={thisUniversityHistory.length}
                 itemContent={(index) => {
                   // eslint-disable-next-line security/detect-object-injection
-                  const item = searchHistory[index];
+                  const item = thisUniversityHistory[index];
                   return (
                     <Stack
                       className={styles.historyRecordDiv}
@@ -66,6 +73,7 @@ const HistoryDrawer = ({
                                   )) ||
                                 (value.length === 1 && value[0] === ""),
                             )
+                            .filter(([key]) => key !== "availableCourseNumbers" && key !== "availableInstructorFirstNames" && key !== "availableInstructorLastNames")
                             .map(([key, value]) => (
                               <span key={key}>
                                 <strong>{key}:</strong> {String(value)}{" "}

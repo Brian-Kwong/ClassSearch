@@ -93,7 +93,7 @@ const filterByInstructorScore = async (
   courses: UniversityCourseResponse[],
   minScore: number | null,
 ) => {
-  if (minScore === null || isNaN(minScore) || minScore < 1 || minScore > 5) {
+  if (minScore === null || isNaN(minScore) || minScore < 1 || minScore > 5 || university === "Demo") {
     return courses;
   }
   return await getProfessorRatings(university || "").then((ratings) => {
@@ -666,6 +666,17 @@ const SearchPage = () => {
     [searchQueryParamsRef, invalidInstructorScore],
   );
 
+  // Set the university in the searchQueryParams on initial load
+  useEffect(() => {
+    searchQueryParamsRef.current = {
+      ...searchQueryParamsRef.current,
+      university: university || "",
+    };
+    setSearchQueryParams({
+      ...searchQueryParamsRef.current,
+    });
+  }, [university]);
+
   return (
     <>
       {searchingResults ? (
@@ -870,6 +881,7 @@ const SearchPage = () => {
                   }
                   searchHistory={searchHistoryList}
                   setSelectedSearchHistoryIndex={setSelectedSearchHistoryIndex}
+                  university={university || ""}
                 />
               </GridItem>
               <GridItem colSpan={1}>

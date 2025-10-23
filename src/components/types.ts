@@ -46,6 +46,7 @@ export type UserSearchRequestTypes = {
   instructorLastName: string[];
   instructorScore: string;
   searchTerm: string[];
+  university: string | null;
 };
 
 export type UniversityCourseResponse = {

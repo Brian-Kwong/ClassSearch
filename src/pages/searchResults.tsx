@@ -196,7 +196,7 @@ const SearchResultsPage = () => {
             Search Results
           </Text>
           <Text fontSize="md" color="gray.500">
-            {searchResults.length} results found
+            {searchResults ? `${searchResults.length} results found` : "No results found"}
           </Text>
         </Stack>
         <Group
@@ -213,10 +213,10 @@ const SearchResultsPage = () => {
             setSelectedValue={setSortBy}
             options={sortByList}
           />
-          {searchResults.length > 0 ? <ReviseSearchButton /> : null}
+          {searchResults && searchResults.length > 0 ? <ReviseSearchButton /> : null}
         </Group>
       </HStack>
-      {searchResults.length > 0 ? (
+      {searchResults && searchResults.length > 0 ? (
         <Virtuoso
           data={pagedResults}
           className={styles.searchResultsList}

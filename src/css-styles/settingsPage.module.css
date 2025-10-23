@@ -20,7 +20,7 @@
     in srgb,
     var(--chakra-colors-primary-dark) 90%,
     white 10%
-  );
+  ) !important;
   color: var(--chakra-colors-text);
 }
 
