@@ -93,7 +93,13 @@ const filterByInstructorScore = async (
   courses: UniversityCourseResponse[],
   minScore: number | null,
 ) => {
-  if (minScore === null || isNaN(minScore) || minScore < 1 || minScore > 5 || university === "Demo") {
+  if (
+    minScore === null ||
+    isNaN(minScore) ||
+    minScore < 1 ||
+    minScore > 5 ||
+    university === "Demo"
+  ) {
     return courses;
   }
   return await getProfessorRatings(university || "").then((ratings) => {

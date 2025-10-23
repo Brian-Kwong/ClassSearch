@@ -196,7 +196,9 @@ const SearchResultsPage = () => {
             Search Results
           </Text>
           <Text fontSize="md" color="gray.500">
-            {searchResults ? `${searchResults.length} results found` : "No results found"}
+            {searchResults
+              ? `${searchResults.length} results found`
+              : "No results found"}
           </Text>
         </Stack>
         <Group
@@ -213,7 +215,9 @@ const SearchResultsPage = () => {
             setSelectedValue={setSortBy}
             options={sortByList}
           />
-          {searchResults && searchResults.length > 0 ? <ReviseSearchButton /> : null}
+          {searchResults && searchResults.length > 0 ? (
+            <ReviseSearchButton />
+          ) : null}
         </Group>
       </HStack>
       {searchResults && searchResults.length > 0 ? (

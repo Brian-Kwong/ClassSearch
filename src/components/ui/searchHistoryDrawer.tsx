@@ -24,7 +24,7 @@ const HistoryDrawer = ({
 
   // Filter for any search history that are not this university
   const thisUniversityHistory = searchHistory.filter(
-    (item) => item.params.university === university
+    (item) => item.params.university === university,
   );
 
   return (
@@ -73,7 +73,12 @@ const HistoryDrawer = ({
                                   )) ||
                                 (value.length === 1 && value[0] === ""),
                             )
-                            .filter(([key]) => key !== "availableCourseNumbers" && key !== "availableInstructorFirstNames" && key !== "availableInstructorLastNames")
+                            .filter(
+                              ([key]) =>
+                                key !== "availableCourseNumbers" &&
+                                key !== "availableInstructorFirstNames" &&
+                                key !== "availableInstructorLastNames",
+                            )
                             .map(([key, value]) => (
                               <span key={key}>
                                 <strong>{key}:</strong> {String(value)}{" "}
