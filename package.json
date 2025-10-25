@@ -6,10 +6,13 @@
   "main": "dist-electron/electron.js",
   "scripts": {
     "prebuildModel": "tsx model.ts",
+    "postinstall": "electron-builder install-app-deps",
     "dev": "npx tsc -p tsconfig.electron.json && concurrently \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/electron.js\"",
     "build": "tsx model.ts && vite build && tsc -p tsconfig.electron.json && electron-builder",
     "build-only": "tsx model.ts && vite build && tsc -p tsconfig.electron.json",
     "testBuild": "tsx model.ts && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
+    "testBuild-mac": "tsx model.ts && vite build && tsc -p tsconfig.electron.json && electron-builder --mac mas --publish never",
+    "testBuild-mas-dev": "tsx model.ts && vite build && tsc -p tsconfig.electron.json && electron-builder --mac mas-dev --publish never",
     "lint": "eslint .",
     "preview": "vite preview",
     "prettier": "prettier --write .",
@@ -59,6 +62,7 @@
     "@vitejs/plugin-react": "^5.0.3",
     "babel-plugin-react-compiler": "^19.1.0-rc.3",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "electron": "^38.1.2",
     "electron-builder": "^26.1.0",
     "electron-devtools-installer": "^4.0.0",
@@ -126,7 +130,19 @@
     "mac": {
       "extendInfo": {
         "CFBundleIconName": "AppIcon"
-      }
+      },
+      "category": "public.app-category.education"
+    },
+    "mas": {
+      "provisioningProfile": "buildResources/ClassSearchMAS.provisionprofile",
+      "entitlements": "buildResources/plists/entitlements.mas.plist",
+      "entitlementsInherit": "buildResources/plists/entitlements.mas.inherit.plist"
+    },
+    "masDev": {
+      "identity": "Apple Development",
+      "provisioningProfile": "buildResources/ClassSearchMac.provisionprofile",
+      "entitlements": "buildResources/plists/entitlements.mas.plist",
+      "entitlementsInherit": "buildResources/plists/entitlements.mas.inherit.plist"
     },
     "afterPack": "./dist-electron/afterPack.js",
     "snap": {
