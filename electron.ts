@@ -310,22 +310,24 @@ ipcMain.handle(
     _event,
     params: { query: { courses: { subject_descr: string }[] } },
   ) => {
-    return new Promise<{ lib: string; name: string }[]>((resolve, reject) => {
-      iconWorker.postMessage({
-        type: "semanticSearch",
-        courses: params.query.courses,
-      });
-      iconWorker.on("message", (message) => {
-        if (message.type === "semanticSearchResults") {
-          resolve(message.results);
-        }
-      });
-      iconWorker.on("error", (err) => {
-        console.error("Worker error during semantic search:", err);
-        reject(err);
-        iconWorker.terminate();
-      });
-    });
+    return new Promise<Map<string, { lib: string; name: string }>>(
+      (resolve, reject) => {
+        iconWorker.postMessage({
+          type: "semanticSearch",
+          courses: params.query.courses,
+        });
+        iconWorker.on("message", (message) => {
+          if (message.type === "semanticSearchResults") {
+            resolve(message.results);
+          }
+        });
+        iconWorker.on("error", (err) => {
+          console.error("Worker error during semantic search:", err);
+          reject(err);
+          iconWorker.terminate();
+        });
+      },
+    );
   },
 );
 

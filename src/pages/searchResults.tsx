@@ -40,7 +40,9 @@ const SearchResultsPage = () => {
     settings,
   } = useSearchContext();
   const [modelLoaded, setModelLoaded] = useState(false);
-  const [icons, setIcons] = useState<Array<{ lib: string; name: string }>>([]);
+  const [icons, setIcons] = useState<
+    Map<string, { lib: string; name: string }>
+  >(new Map());
   const [teacherRatingsList, setTeacherRatingsList] = useState<Map<
     string,
     TeacherRatings
@@ -95,6 +97,7 @@ const SearchResultsPage = () => {
       try {
         const courses = searchResults.map((course) => ({
           // Removes all Roman numerical suffixes from the description
+          course_id: `${course.catalog_nbr}-${course.class_section}`,
           subject_descr: course.descr
             .replace(/ *\b(I|II|III|IV|V|VI|VII|VIII|IX|X)\b */g, "")
             .trim(),
@@ -229,7 +232,12 @@ const SearchResultsPage = () => {
               key={index}
               university={university || ""}
               course={course}
-              iconName={icons.at(index) || { lib: "mdi", name: "book" }}
+              iconName={
+                icons.get(`${course.catalog_nbr}-${course.class_section}`) || {
+                  lib: "mdi",
+                  name: "book",
+                }
+              }
               professorRating={
                 teacherRatingsList
                   ? findClosestTeacherRating(
