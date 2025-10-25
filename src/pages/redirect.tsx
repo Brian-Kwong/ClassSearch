@@ -28,7 +28,7 @@ declare global {
       semanticSearch: {
         performIconSearch: (query: {
           courses: { subject_descr: string }[];
-        }) => Promise<{ lib: string; name: string }[]>;
+        }) => Promise<Map<string, { lib: string; name: string }>>;
         setup: () => Promise<void>;
       };
       onFetchProgress: (

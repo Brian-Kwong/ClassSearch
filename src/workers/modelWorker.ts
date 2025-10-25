@@ -49,8 +49,10 @@ if (parentPort) {
       searchPipeline &&
       lookupTable
     ) {
-      const courses: { subject_descr: string }[] = message.courses;
-      const searchResults: { lib: string; name: string }[] = [];
+      const courses: { subject_descr: string; course_id: string }[] =
+        message.courses;
+      const searchResults: Map<string, { lib: string; name: string }> =
+        new Map();
       for (const course of courses) {
         const embeddings = await searchPipeline(course.subject_descr, {
           pooling: "mean",
@@ -60,7 +62,7 @@ if (parentPort) {
           !embeddings ||
           (Array.isArray(embeddings) && embeddings.length === 0)
         ) {
-          searchResults.push({ lib: "mdi", name: "book" });
+          searchResults.set(course.course_id, { lib: "mdi", name: "book" });
           continue;
         } else {
           const results = await lookupTable
@@ -70,9 +72,12 @@ if (parentPort) {
           if (results.length > 0) {
             // Casts to the model database type Look in `./model.ts` for the schema
             const topResult = results[0] as iconModelDBEntry;
-            searchResults.push({ lib: topResult.lib, name: topResult.name });
+            searchResults.set(course.course_id, {
+              lib: topResult.lib,
+              name: topResult.name,
+            });
           } else {
-            searchResults.push({ lib: "mdi", name: "book" });
+            searchResults.set(course.course_id, { lib: "mdi", name: "book" });
           }
         }
       }
