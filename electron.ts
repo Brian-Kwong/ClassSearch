@@ -22,7 +22,7 @@ export let persistentSession: Session | null = null;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const userDataPath = app.getPath("userData");
-const dbPath = app.isPackaged
+let dbPath = app.isPackaged
   ? path.join(process.resourcesPath, "data", "local-db")
   : path.join(__dirname, "data", "local-db");
 
@@ -68,7 +68,24 @@ const createNewApp = () => {
   }
 };
 
-app.whenReady().then(createNewApp);
+const copyImageDBToAppData = async () => {
+  const originalDB = app.isPackaged
+    ? path.join(process.resourcesPath, "data", "local-db")
+    : path.join(__dirname, "data", "local-db");
+
+  const userDbPath = path.join(userDataPath, "local-db");
+
+  if (!fs.existsSync(userDbPath)) {
+    fs.mkdirSync(userDbPath, { recursive: true });
+    fs.cpSync(originalDB, userDbPath, { recursive: true });
+  }
+  dbPath = userDbPath;
+};
+
+app.whenReady().then(async () => {
+  await copyImageDBToAppData();
+  createNewApp();
+});
 
 autoUpdater.on("update-downloaded", async () => {
   const response = await dialog.showMessageBox({

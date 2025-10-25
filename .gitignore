@@ -28,3 +28,4 @@ dev-dist
 /docs/.vitepress/cache
 src/components/csuLinks.ts
 .env
+*.provisionprofile
