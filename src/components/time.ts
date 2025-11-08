@@ -12,7 +12,7 @@ function formatTime(
       return `${hours}:${minutes}`;
     } else {
       const period = parseInt(hours) >= 12 ? "PM" : "AM";
-      const adjustedHours = (parseInt(hours) % 12) || 12;
+      const adjustedHours = parseInt(hours) % 12 || 12;
       return `${adjustedHours}:${minutes} ${period}`;
     }
   } catch {
