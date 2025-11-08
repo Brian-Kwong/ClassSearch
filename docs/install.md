@@ -23,8 +23,17 @@ The application is distributed as a desktop application distributed via GitHub r
 
 ## macOS
 
+### Mac App Store Installation (Recommended)
+
+1. Open the Mac App Store on your macOS device.
+2. Search for "CP Class Search" in the search bar or click [here](https://apps.apple.com/us/app/cp-class-search/id6754364563?mt=12) to go directly head to the app's page.
+3. Click the `Download` button to download and install the application.
+4. Once installed, you can find the application in your Applications folder or by searching for "Class Search" using Spotlight.
+
+### macOS DMG Installer
+
 > [!NOTE]
-> There is currently no notarized version of the application available. You may encounter security warnings when installing the app. Please refer to the [FAQ](faq.md#1-when-downloading-the-app-my-browser-warns-me-that-the-file-is-dangerous-why-is-that-and-is-it-safe-to-proceed) for more information. An macOS app notarized version will be provided in a future release.
+> The current GH releases version is not notarized. We suggest you use the MAS version but if you prefer GH releases, you may encounter security warnings when installing the app. Please refer to the [FAQ](faq.md#1-when-downloading-the-app-my-browser-warns-me-that-the-file-is-dangerous-why-is-that-and-is-it-safe-to-proceed) for more information. An macOS app notarized version will be provided in a future release.
 
 1. Download the latest `.dmg` installer from the [releases page](https://github.com/Brian-Kwong/CSUClassSearch/releases).
 2. Open the downloaded `.dmg` file.
