@@ -69,8 +69,8 @@ const SearchResultsPage = () => {
       try {
         await window.electronAPI.semanticSearch.setup();
         setModelLoaded(true);
-      } catch (error) {
-        console.error("Error loading model:", error);
+      } catch  {
+        setModelLoaded(false);
       }
     }
     loadModel();
@@ -107,8 +107,8 @@ const SearchResultsPage = () => {
             courses,
           });
         setIcons(results);
-      } catch (error) {
-        console.error("Error performing semantic search:", error);
+      } catch  {
+        setIcons(new Map());
       }
     };
     fetchIcons();

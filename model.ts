@@ -4,6 +4,7 @@ The following node script generates a basic model to fetch and vectorize icon me
 import { pipeline } from "@huggingface/transformers";
 import lancedb from "@lancedb/lancedb";
 import fs from "fs";
+import { fileURLToPath } from 'node:url';
 
 async function fetchIconMetadata() {
   const metadata: Record<string, { name: string; aliases: string }[]> = {};
@@ -129,8 +130,7 @@ async function createVectorDB(_dbPath: string = "data/local-db") {
 
 // Only run if this file is executed directly
 if (
-  import.meta.url === process.argv[1] ||
-  import.meta.url === `file://${process.argv[1]}`
+  fileURLToPath(import.meta.url) === process.argv[1]
 ) {
   if (!fs.existsSync("dist-electron")) {
     fs.mkdirSync("dist-electron");

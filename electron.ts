@@ -62,13 +62,13 @@ const createNewApp = () => {
     }
     mainWindow.setMenuBarVisibility(false);
     mainWindow.maximize();
-    autoUpdater.checkForUpdates();
   } catch (error) {
     console.error("Error occurred while creating the main window:", error);
   }
 };
 
 const copyImageDBToAppData = async () => {
+  try {
   const originalDB = app.isPackaged
     ? path.join(process.resourcesPath, "data", "local-db")
     : path.join(__dirname, "data", "local-db");
@@ -78,8 +78,12 @@ const copyImageDBToAppData = async () => {
   if (!fs.existsSync(userDbPath)) {
     fs.mkdirSync(userDbPath, { recursive: true });
     fs.cpSync(originalDB, userDbPath, { recursive: true });
+      await loadIconModel();
   }
   dbPath = userDbPath;
+  } catch (error) {
+    console.error("Error copying image DB to app data:", error);
+  }
 };
 
 app.whenReady().then(async () => {
@@ -269,7 +273,7 @@ ipcMain.handle("getRMPInfo", async (_event, params: { school: string }) => {
   }
 });
 
-ipcMain.handle("loadModel", async () => {
+async function loadIconModel() {
   if (fs.existsSync(path.join(userDataPath, "model-cache")) === false) {
     fs.mkdirSync(path.join(userDataPath, "model-cache"));
     // Check if the cache folder exists, if not create it
@@ -297,11 +301,14 @@ ipcMain.handle("loadModel", async () => {
       }
     });
     iconWorker.on("error", (err) => {
-      console.error("Worker error:", err);
       reject(err + env.localModelPath);
       iconWorker.terminate();
     });
   });
+}
+
+ipcMain.handle("loadModel", async () => {
+  return loadIconModel();
 });
 
 ipcMain.handle(
@@ -322,7 +329,6 @@ ipcMain.handle(
           }
         });
         iconWorker.on("error", (err) => {
-          console.error("Worker error during semantic search:", err);
           reject(err);
           iconWorker.terminate();
         });
